@@ -268,7 +268,7 @@ export default function Home() {
         </AnimatePresence>
 
         {/* HEADER */}
-        <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
+        <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.98)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             
             <a href="#" style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
@@ -324,42 +324,42 @@ export default function Home() {
 
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "4px", justifyContent: "center" }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px", justifyContent: "center" }}
                 aria-label="Menü"
               >
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "0.3s", transform: isMobileMenuOpen ? "rotate(45deg) translate(4px, 4px)" : "none" }}></span>
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", opacity: isMobileMenuOpen ? 0 : 1, transition: "0.3s" }}></span>
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "0.3s", transform: isMobileMenuOpen ? "rotate(-45deg) translate(4px, -5px)" : "none" }}></span>
+                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }}></span>
+                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "opacity 0.2s ease", opacity: isMobileMenuOpen ? 0 : 1 }}></span>
+                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }}></span>
               </button>
             </div>
 
           </div>
 
-          {/* MOBILE MENU */}
+          {/* FLUIDNI MOBILNI MENI (GPU ACCELERATED) */}
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 style={{ 
-                  overflow: "hidden", 
                   display: "flex", 
                   flexDirection: "column", 
                   alignItems: "center", 
                   textAlign: "center", 
-                  gap: "16px", 
-                  paddingTop: "20px", 
-                  paddingBottom: "14px", 
+                  gap: "14px", 
+                  paddingTop: "18px", 
+                  paddingBottom: "12px", 
                   borderTop: "1px solid #E5DFD3", 
-                  marginTop: "12px" 
+                  marginTop: "12px",
+                  willChange: "transform, opacity"
                 }}
               >
-                <a href="#ueber-uns" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "17px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Über uns</a>
-                <a href="#torten" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "17px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Torten</a>
-                <a href="#bestellung" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "17px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bestellung</a>
-                <a href="#bewertungen" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "17px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bewertungen</a>
+                <a href="#ueber-uns" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Über uns</a>
+                <a href="#torten" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Torten</a>
+                <a href="#bestellung" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bestellung</a>
+                <a href="#bewertungen" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bewertungen</a>
               </motion.div>
             )}
           </AnimatePresence>
@@ -370,7 +370,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: isLoading ? 2.4 : 0.1 }}
+            transition={{ duration: 0.5, delay: isLoading ? 2.3 : 0.05 }}
           >
             <div style={{ display: "inline-block", backgroundColor: "#EDE6DA", color: "#7A5C43", padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", marginBottom: "16px", letterSpacing: "1px" }}>
               FRISCH UND MIT LIEBE GEBACKEN
@@ -438,20 +438,19 @@ export default function Home() {
             {cakes.map((cake, index) => (
               <motion.div
                 key={cake.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
                 whileHover={{ y: -5 }}
-                style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)" }}
+                style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)", willChange: "transform" }}
               >
                 <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", backgroundColor: "#F0EAE1", overflow: "hidden" }}>
-                  <motion.img
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4 }}
+                  <img
                     src={cake.image}
                     alt={cake.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s ease" }}
                   />
                   {cake.badge && (
                     <span style={{ position: "absolute", top: "12px", left: "12px", backgroundColor: "#7A5C43", color: "white", fontSize: "11px", fontWeight: "700", padding: "4px 9px", borderRadius: "12px", zIndex: 2 }}>
@@ -470,7 +469,7 @@ export default function Home() {
 
                   <button
                     onClick={() => addToCart(cake)}
-                    style={{ width: "100%", backgroundColor: "#F7F4EE", color: "#3B281B", border: "1.5px solid #7A5C43", padding: "10px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" }}
+                    style={{ width: "100%", backgroundColor: "#F7F4EE", color: "#3B281B", border: "1.5px solid #7A5C43", padding: "10px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "background-color 0.2s, color 0.2s" }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#7A5C43";
                       e.currentTarget.style.color = "#FFFFFF";
@@ -499,10 +498,10 @@ export default function Home() {
               {steps.map((step, idx) => (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, y: 25 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.15 }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
                   style={{
                     backgroundColor: "#FAF7F2",
                     borderRadius: "24px",
@@ -541,10 +540,10 @@ export default function Home() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={reviewPage}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.55, ease: "easeInOut" }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}
               >
                 {currentReviews.map((rev, idx) => (
@@ -578,7 +577,7 @@ export default function Home() {
                   backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
                   border: "none",
                   cursor: "pointer",
-                  transition: "all 0.3s ease",
+                  transition: "all 0.25s ease",
                   padding: 0,
                 }}
                 aria-label={`Seite ${pageIndex + 1}`}
@@ -587,7 +586,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- FOOTER SA DODATOM INSTAGRAM SEKCIJOM --- */}
+        {/* FOOTER */}
         <footer style={{ backgroundColor: "#2B2118", color: "#D9CFC1", padding: "50px 20px 30px" }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "30px", borderBottom: "1px solid #453528", paddingBottom: "36px" }}>
             
@@ -605,7 +604,7 @@ export default function Home() {
               </p>
             </div>
             
-            {/* SREDNJA KOLONA: STANDORT, KONTAKT & INSTAGRAM */}
+            {/* SREDNJA KOLONA */}
             <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
               <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
                 Standort & Kontakt
@@ -621,7 +620,6 @@ export default function Home() {
                 <a href="tel:+491782083381" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>+49 178 2083381</a>
               </p>
 
-              {/* INSTAGRAM LINK */}
               <p style={{ color: "white", fontSize: "13px", fontWeight: "600", margin: "0 0 6px 0" }}>
                 Folgen Sie uns auf Instagram
               </p>
@@ -642,14 +640,6 @@ export default function Home() {
                   border: "1px solid rgba(217, 207, 193, 0.2)",
                   transition: "all 0.2s ease",
                   cursor: "pointer"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.15)";
-                  e.currentTarget.style.color = "#FFFFFF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
-                  e.currentTarget.style.color = "#D9CFC1";
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -686,16 +676,17 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 onClick={() => setIsCartOpen(false)}
-                style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", zIndex: 100, backdropFilter: "blur(4px)", cursor: "pointer" }}
+                style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", zIndex: 100, cursor: "pointer" }}
               />
 
               <motion.div
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "100%", maxWidth: "480px", backgroundColor: "#F7F4EE", zIndex: 101, display: "flex", flexDirection: "column", boxShadow: "-8px 0 30px rgba(0,0,0,0.15)" }}
+                transition={{ type: "spring", damping: 28, stiffness: 260 }}
+                style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "100%", maxWidth: "480px", backgroundColor: "#F7F4EE", zIndex: 101, display: "flex", flexDirection: "column", boxShadow: "-8px 0 30px rgba(0,0,0,0.15)", willChange: "transform" }}
               >
                 <div style={{ padding: "18px 20px", borderBottom: "1px solid #E5DFD3", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#2B2118", margin: 0 }}>
