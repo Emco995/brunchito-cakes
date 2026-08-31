@@ -130,6 +130,28 @@ export default function Home() {
     customerData.address &&
     customerData.phone;
 
+  // FIKSIRANI SCROLL KOJI ČEKA DA SE MOBILNI MENI SKLOPI
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        const headerHeight = 70;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = element.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - headerHeight;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }, 50);
+  };
+
   const handleStripeCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
@@ -184,10 +206,8 @@ export default function Home() {
 
   const handleSwipe = (_event: any, info: { offset: { x: number } }) => {
     if (info.offset.x < -40) {
-      // Prevlačenje ulijevo -> sljedeća stranica
       setReviewPage((prev) => (prev + 1) % 3);
     } else if (info.offset.x > 40) {
-      // Prevlačenje udesno -> prethodna stranica
       setReviewPage((prev) => (prev - 1 + 3) % 3);
     }
   };
@@ -196,6 +216,9 @@ export default function Home() {
     <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "EUR" }}>
       <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
         <style>{`
+          html {
+            scroll-behavior: smooth;
+          }
           .desktop-nav {
             display: flex;
             gap: 22px;
@@ -301,10 +324,10 @@ export default function Home() {
 
             {/* DESKTOP NAV */}
             <nav className="desktop-nav">
-              <a href="#ueber-uns" style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Über uns</a>
-              <a href="#torten" style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Torten</a>
-              <a href="#bestellung" style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bestellung</a>
-              <a href="#bewertungen" style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bewertungen</a>
+              <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Über uns</a>
+              <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Torten</a>
+              <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bestellung</a>
+              <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bewertungen</a>
               
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -366,10 +389,10 @@ export default function Home() {
                   willChange: "transform, opacity"
                 }}
               >
-                <a href="#ueber-uns" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Über uns</a>
-                <a href="#torten" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Torten</a>
-                <a href="#bestellung" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bestellung</a>
-                <a href="#bewertungen" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bewertungen</a>
+                <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Über uns</a>
+                <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Torten</a>
+                <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bestellung</a>
+                <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bewertungen</a>
               </motion.div>
             )}
           </AnimatePresence>
@@ -395,6 +418,7 @@ export default function Home() {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               href="#torten"
+              onClick={(e) => scrollToSection(e, "torten")}
               style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "12px 28px", borderRadius: "30px", fontSize: "15px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px" }}
             >
               Unsere Torten entdecken
@@ -433,7 +457,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TORTEN */}
+        {/* TORTEN - SAVRŠENO FOKUSIRANE I CENTRIRANE NA TORTU */}
         <section id="torten" style={{ padding: "70px 20px 80px", maxWidth: "1300px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
             <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Unsere Auswahl</h2>
@@ -455,12 +479,20 @@ export default function Home() {
                 whileHover={{ y: -5 }}
                 style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)", willChange: "transform" }}
               >
+                {/* OKVIR ZA SLIKU SA OPTIMALNIM POMJERANJEM PREMA GORE */}
                 <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", backgroundColor: "#F0EAE1", overflow: "hidden" }}>
                   <img
                     src={cake.image}
                     alt={cake.name}
                     loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s ease" }}
+                    style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      objectFit: "cover", 
+                      objectPosition: "center 78%", // Spušta gornji zid i dovodi tortu tačno u središte kadra
+                      transform: "scale(1.1)", 
+                      transition: "transform 0.3s ease" 
+                    }}
                   />
                   {cake.badge && (
                     <span style={{ position: "absolute", top: "12px", left: "12px", backgroundColor: "#7A5C43", color: "white", fontSize: "11px", fontWeight: "700", padding: "4px 9px", borderRadius: "12px", zIndex: 2 }}>
@@ -539,7 +571,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- BEWERTUNGEN SA TOUCH SWIPE GESTURE I STRELICAMA --- */}
+        {/* BEWERTUNGEN */}
         <section id="bewertungen" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
           <div style={{ textAlign: "center", marginBottom: "30px" }}>
             <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
@@ -585,7 +617,6 @@ export default function Home() {
             </AnimatePresence>
           </div>
 
-          {/* DUGMAD ZA PREBACIVANJE I TAČKICE */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "28px" }}>
             <button
               onClick={() => setReviewPage((prev) => (prev - 1 + 3) % 3)}
