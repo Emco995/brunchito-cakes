@@ -63,7 +63,6 @@ export default function Home() {
   const [reviewPage, setReviewPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Formular podaci
   const [customerData, setCustomerData] = useState({
     date: "",
     firstName: "",
@@ -77,7 +76,6 @@ export default function Home() {
   const minDate = tomorrow.toISOString().split("T")[0];
 
   useEffect(() => {
-    // Forsiramo skrol na sam vrh pri učitavanju
     window.scrollTo(0, 0);
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -133,7 +131,6 @@ export default function Home() {
     customerData.address &&
     customerData.phone;
 
-  // PRECIZNO SKROLOVANJE NA VRH SEKCIJE
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
@@ -373,7 +370,7 @@ export default function Home() {
 
           </div>
 
-          {/* OVERLAY MOBILNI MENI (NE REMETI VISINU DOKUMENTA) */}
+          {/* OVERLAY MOBILNI MENI */}
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div

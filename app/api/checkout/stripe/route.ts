@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2024-06-20" as any,
 });
 
@@ -9,37 +9,69 @@ export async function POST(req: Request) {
   try {
     const { items, customerData } = await req.json();
 
-    const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "Warenkorb ist leer." }, { status: 400 });
+    }
 
     const lineItems = items.map((item: any) => ({
       price_data: {
         currency: "eur",
         product_data: {
           name: item.name,
-          images: item.image?.startsWith("http") ? [item.image] : undefined,
+          images: item.image ? [`${process.env.NEXT_PUBLIC_SITE_URL || "https://brunchito-cakes.vercel.app"}${item.image}`] : [],
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round(Number(item.price) * 100),
       },
       quantity: item.quantity,
     }));
+
+    // Dodajemo dostavu 5 €
+    lineItems.push({
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: "Lieferung in Düsseldorf (oder Abholung)",
+        },
+        unit_amount: 500,
+      },
+      quantity: 1,
+    });
+
+    // Računamo ukupan iznos za prikaz na success stranici
+    const totalAmount = (
+      items.reduce((acc: number, item: any) => acc + Number(item.price) * item.quantity, 0) + 5
+    ).toFixed(2);
+
+    const fullName = customerData.firstName
+      ? `${customerData.firstName} ${customerData.lastName || ""}`.trim()
+      : "Kunde";
+
+    const successParams = new URLSearchParams({
+      name: fullName,
+      amount: totalAmount,
+      date: customerData.date || "Wird abgestimmt",
+      address: customerData.address || "Vor Ort Abholung",
+      method: "Kreditkarte",
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/?canceled=true`,
+      customer_email: customerData.email || undefined,
       metadata: {
-        customerName: `${customerData.firstName} ${customerData.lastName}`,
-        customerPhone: customerData.phone,
-        deliveryAddress: customerData.address,
-        preferredDate: customerData.date,
+        customerName: fullName,
+        deliveryDate: customerData.date || "",
+        address: customerData.address || "",
+        phone: customerData.phone || "",
       },
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://brunchito-cakes.vercel.app"}/success?${successParams.toString()}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://brunchito-cakes.vercel.app"}/#torten`,
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
-    console.error("Stripe Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (err: any) {
+    console.error("Stripe checkout error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

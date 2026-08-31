@@ -1,74 +1,79 @@
 "use client";
-import { Suspense } from "react";
+
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Check } from "lucide-react";
+import { Suspense } from "react";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+
   const name = searchParams.get("name") || "Kunde";
-  const total = searchParams.get("total") || "0.00";
-  const date = searchParams.get("date") || "";
-  const address = searchParams.get("address") || "";
+  const amount = searchParams.get("amount") || "0.00";
+  const date = searchParams.get("date") || "Wird abgestimmt";
+  const address = searchParams.get("address") || "Vor Ort Abholung";
   const method = searchParams.get("method") || "Online Zahlung";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      style={{
-        backgroundColor: "#FFFFFF",
-        maxWidth: "520px",
-        width: "100%",
-        padding: "40px 30px",
-        borderRadius: "24px",
-        border: "1px solid #E5DFD3",
-        boxShadow: "0 10px 30px rgba(59, 40, 27, 0.05)",
-        textAlign: "center"
-      }}
-    >
-      <div style={{ width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "#EDE6DA", color: "#7A5C43", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: "28px", fontWeight: "700" }}>
-        ✓
-      </div>
-      <h1 style={{ fontFamily: "serif", fontSize: "26px", color: "#2B2118", margin: "0 0 10px" }}>
-        Bestellung erfolgreich!
-      </h1>
-      <p style={{ color: "#6A584A", fontSize: "15px", margin: "0 0 24px" }}>
-        Vielen Dank, <strong>{name}</strong>! Ihre Zahlung über <strong>{total} €</strong> wurde erfolgreich erfasst.
-      </p>
+    <div className="min-h-screen bg-[#FDFBF9] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-[#F0EAE4] text-center">
+        {/* Check Icon */}
+        <div className="w-16 h-16 bg-[#EBE5DF] rounded-full flex items-center justify-center mx-auto mb-6 text-[#5C4D43]">
+          <Check className="w-8 h-8" />
+        </div>
 
-      {/* DETALJI O PORUDŽBINI */}
-      <div style={{ backgroundColor: "#F7F4EE", borderRadius: "14px", padding: "16px 20px", textAlign: "left", fontSize: "14px", color: "#5C4636", marginBottom: "26px", display: "flex", flexDirection: "column", gap: "8px" }}>
-        <div>📅 <strong>Wunschtermin:</strong> {date || "Wird abgestimmt"}</div>
-        <div>📍 <strong>Lieferadresse:</strong> {address || "Vor Ort Abholung"}</div>
-        <div>💳 <strong>Zahlungsart:</strong> {method}</div>
-      </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#2D2421] mb-2 font-serif">
+          Bestellung erfolgreich!
+        </h1>
+        
+        <p className="text-[#7A6B63] text-sm mb-6">
+          Vielen Dank, <strong className="text-[#2D2421]">{name}</strong>! Ihre Zahlung über{" "}
+          <strong className="text-[#2D2421]">{amount} €</strong> wurde erfolgreich erfasst.
+        </p>
 
-      <Link
-        href="/"
-        style={{
-          display: "inline-block",
-          backgroundColor: "#7A5C43",
-          color: "white",
-          textDecoration: "none",
-          padding: "12px 28px",
-          borderRadius: "20px",
-          fontSize: "14px",
-          fontWeight: "600"
-        }}
-      >
-        Zurück zur Startseite
-      </Link>
-    </motion.div>
+        {/* Order Details Card */}
+        <div className="bg-[#FAF7F4] rounded-2xl p-5 text-left text-sm text-[#5C4D43] space-y-3 mb-8 border border-[#F0EAE4]">
+          <div className="flex items-start gap-2">
+            <span>📅</span>
+            <div>
+              <span className="font-semibold text-[#2D2421]">Wunschtermin:</span>{" "}
+              {date}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <span>📍</span>
+            <div>
+              <span className="font-semibold text-[#2D2421]">Lieferadresse:</span>{" "}
+              {address}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <span>💳</span>
+            <div>
+              <span className="font-semibold text-[#2D2421]">Zahlungsart:</span>{" "}
+              {method}
+            </div>
+          </div>
+        </div>
+
+        {/* Back Button */}
+        <Link
+          href="/"
+          className="inline-block w-full py-3.5 px-6 rounded-full bg-[#5C4D43] text-white font-medium hover:bg-[#4A3D35] transition-colors"
+        >
+          Zurück zur Startseite
+        </Link>
+      </div>
+    </div>
   );
 }
 
 export default function SuccessPage() {
   return (
-    <div style={{ backgroundColor: "#F7F4EE", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <Suspense fallback={<p style={{ color: "#7A5C43" }}>Laden...</p>}>
-        <SuccessContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="min-h-screen bg-[#FDFBF9] flex items-center justify-center">Laden...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
