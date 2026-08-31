@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://brunchito-cakes.vercel.app";
+// Koristi tvoj tačan Vercel domen ili promenljivu
+const siteUrl = "https://brunchito-cakes.vercel.app";
+const ogImageUrl = `${siteUrl}/cake-strawberry.jpeg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -17,16 +19,8 @@ export const metadata: Metadata = {
     "Patisserie Düsseldorf",
     "Brunchito Cakes",
   ],
-  authors: [{ name: "Brunchito Cakes" }],
-  creator: "Brunchito Cakes",
-  publisher: "Brunchito Cakes",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   icons: {
-    icon: "/cake-strawberry.jpeg", // Kasnije možeš zameniti namenskim /favicon.ico ili /logo.png
+    icon: "/cake-strawberry.jpeg",
     apple: "/cake-strawberry.jpeg",
   },
   openGraph: {
@@ -34,13 +28,14 @@ export const metadata: Metadata = {
     description:
       "Handgefertigte Artisan-Torten in Düsseldorf. Frisch mit Liebe gebacken – einfach online Wunschtermin wählen und genießen.",
     url: siteUrl,
-    siteName: "Brunchito Cakes",
+    siteName: "Brunchito Cakes Düsseldorf",
     images: [
       {
-        url: "/cake-strawberry.jpeg",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
-        alt: "Brunchito Cakes Düsseldorf Premium Torten",
+        alt: "Brunchito Cakes Düsseldorf",
+        type: "image/jpeg",
       },
     ],
     locale: "de_DE",
@@ -50,27 +45,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Brunchito Cakes Düsseldorf | Premium-Torten",
     description: "Handgemachte Premium-Torten & Cheesecakes in Düsseldorf.",
-    images: ["/cake-strawberry.jpeg"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
+    images: [ogImageUrl],
   },
 };
 
-// Google Schema.org struktuirani podaci za lokalni biznis (Bakery / Café)
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Bakery",
   name: "Brunchito Cakes",
-  image: `${siteUrl}/cake-strawberry.jpeg`,
+  image: ogImageUrl,
   description: "Handgemachte Premium-Torten & Cheesecakes in Düsseldorf.",
   address: {
     "@type": "PostalAddress",
@@ -100,6 +83,11 @@ export default function RootLayout({
   return (
     <html lang="de">
       <head>
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:secure_url" content={ogImageUrl} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
