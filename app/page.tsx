@@ -182,6 +182,16 @@ export default function Home() {
     router.push(`/success?${queryParams.toString()}`);
   };
 
+  const handleSwipe = (_event: any, info: { offset: { x: number } }) => {
+    if (info.offset.x < -40) {
+      // Prevlačenje ulijevo -> sljedeća stranica
+      setReviewPage((prev) => (prev + 1) % 3);
+    } else if (info.offset.x > 40) {
+      // Prevlačenje udesno -> prethodna stranica
+      setReviewPage((prev) => (prev - 1 + 3) % 3);
+    }
+  };
+
   return (
     <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "EUR" }}>
       <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
@@ -335,7 +345,7 @@ export default function Home() {
 
           </div>
 
-          {/* FLUIDNI MOBILNI MENI (GPU ACCELERATED) */}
+          {/* MOBILE MENU */}
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div
@@ -529,22 +539,32 @@ export default function Home() {
           </div>
         </section>
 
-        {/* BEWERTUNGEN */}
-        <section id="bewertungen" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "34px" }}>
+        {/* --- BEWERTUNGEN SA TOUCH SWIPE GESTURE I STRELICAMA --- */}
+        <section id="bewertungen" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
+          <div style={{ textAlign: "center", marginBottom: "30px" }}>
             <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
-            <p style={{ color: "#7A5C43", fontSize: "15px" }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
+            <p style={{ color: "#7A5C43", fontSize: "15px", margin: 0 }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
+            <p style={{ color: "#A89A8C", fontSize: "12px", marginTop: "6px" }}>👆 Wischen Sie nach links oder rechts für weitere Bewertungen</p>
           </div>
 
-          <div style={{ minHeight: "220px", position: "relative" }}>
+          <div style={{ position: "relative", touchAction: "pan-y" }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={reviewPage}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={handleSwipe}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", 
+                  gap: "20px",
+                  cursor: "grab"
+                }}
               >
                 {currentReviews.map((rev, idx) => (
                   <div
@@ -565,24 +585,43 @@ export default function Home() {
             </AnimatePresence>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "28px" }}>
-            {[0, 1, 2].map((pageIndex) => (
-              <button
-                key={pageIndex}
-                onClick={() => setReviewPage(pageIndex)}
-                style={{
-                  width: reviewPage === pageIndex ? "24px" : "8px",
-                  height: "8px",
-                  borderRadius: "4px",
-                  backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.25s ease",
-                  padding: 0,
-                }}
-                aria-label={`Seite ${pageIndex + 1}`}
-              />
-            ))}
+          {/* DUGMAD ZA PREBACIVANJE I TAČKICE */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "28px" }}>
+            <button
+              onClick={() => setReviewPage((prev) => (prev - 1 + 3) % 3)}
+              style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
+              aria-label="Vorherige Bewertungen"
+            >
+              ‹
+            </button>
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              {[0, 1, 2].map((pageIndex) => (
+                <button
+                  key={pageIndex}
+                  onClick={() => setReviewPage(pageIndex)}
+                  style={{
+                    width: reviewPage === pageIndex ? "24px" : "8px",
+                    height: "8px",
+                    borderRadius: "4px",
+                    backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "all 0.25s ease",
+                    padding: 0,
+                  }}
+                  aria-label={`Seite ${pageIndex + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => setReviewPage((prev) => (prev + 1) % 3)}
+              style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
+              aria-label="Nächste Bewertungen"
+            >
+              ›
+            </button>
           </div>
         </section>
 
