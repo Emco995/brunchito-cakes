@@ -130,7 +130,6 @@ export default function Home() {
     customerData.address &&
     customerData.phone;
 
-  // Preusmeravanje na /success sa detaljima
   const handleStripeCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
@@ -140,7 +139,6 @@ export default function Home() {
 
     setIsSubmitting(true);
     
-    // Provera da li postoji pravi Stripe API backend odgovor
     try {
       const response = await fetch("/api/checkout/stripe", {
         method: "POST",
@@ -157,7 +155,6 @@ export default function Home() {
       console.log("Stripe test mode redirect");
     }
 
-    // Direktno preusmeravanje na Success stranicu sa podacima o porudžbini
     const queryParams = new URLSearchParams({
       name: `${customerData.firstName} ${customerData.lastName}`,
       total: totalAmount.toFixed(2),
@@ -590,7 +587,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FOOTER */}
+        {/* --- FOOTER SA DODATOM INSTAGRAM SEKCIJOM --- */}
         <footer style={{ backgroundColor: "#2B2118", color: "#D9CFC1", padding: "50px 20px 30px" }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "30px", borderBottom: "1px solid #453528", paddingBottom: "36px" }}>
             
@@ -608,7 +605,7 @@ export default function Home() {
               </p>
             </div>
             
-            {/* SREDNJA KOLONA */}
+            {/* SREDNJA KOLONA: STANDORT, KONTAKT & INSTAGRAM */}
             <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
               <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
                 Standort & Kontakt
@@ -617,12 +614,49 @@ export default function Home() {
                 <span>📍</span>
                 <span>Düsseldorf, Deutschland</span>
               </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 16px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
                 </svg>
                 <a href="tel:+491782083381" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>+49 178 2083381</a>
               </p>
+
+              {/* INSTAGRAM LINK */}
+              <p style={{ color: "white", fontSize: "13px", fontWeight: "600", margin: "0 0 6px 0" }}>
+                Folgen Sie uns auf Instagram
+              </p>
+              <a
+                href="https://instagram.com/brunchito.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  color: "#D9CFC1",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  padding: "6px 12px",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(217, 207, 193, 0.2)",
+                  transition: "all 0.2s ease",
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.15)";
+                  e.currentTarget.style.color = "#FFFFFF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
+                  e.currentTarget.style.color = "#D9CFC1";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>@brunchito.de</span>
+              </a>
             </div>
 
             {/* DESNA KOLONA */}
@@ -818,7 +852,7 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* CHECKOUT DUGME / PAYPAL */}
+                {/* CHECKOUT DUGME */}
                 {cart.length > 0 && (
                   <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -865,7 +899,7 @@ export default function Home() {
                         type="submit"
                         form="order-form"
                         disabled={isSubmitting}
-                        style={{ width: "100%", backgroundColor: "#7A5C43", color: "white", padding: "12px", borderRadius: "10px", border: "none", fontSize: "15px", fontWeight: "700", cursor: isSubmitting ? "not-allowed" : "pointer", letterSpacing: "0.5px" }}
+                        style={{ width: "100%", backgroundColor: "#7A5C43", color: "white", padding: "12px", borderRadius: "10px", border: "none", fontSize: "15px", fontWeight: "700", cursor: isSubmitting ? "not-allowed" : "pointer", letterSpacing: "0.5px", opacity: isSubmitting ? 0.7 : 1 }}
                       >
                         {isSubmitting ? "Wird verarbeitet..." : `Jetzt mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
                       </button>
