@@ -15,53 +15,109 @@ function SuccessContent() {
   const method = searchParams.get("method") || "Online Zahlung";
 
   return (
-    <div className="min-h-screen bg-[#FDFBF9] flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-[#F0EAE4] text-center">
-        {/* Check Icon */}
-        <div className="w-16 h-16 bg-[#EBE5DF] rounded-full flex items-center justify-center mx-auto mb-6 text-[#5C4D43]">
-          <Check className="w-8 h-8" />
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "rgba(250, 248, 245, 0.95)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      fontFamily: "system-ui, -apple-system, sans-serif"
+    }}>
+      <div style={{
+        maxWidth: "480px",
+        width: "100%",
+        backgroundColor: "#FFFFFF",
+        borderRadius: "24px",
+        padding: "36px 28px",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+        border: "1px solid rgba(0,0,0,0.05)",
+        textAlign: "center"
+      }}>
+        {/* Zelena ikonica za potvrdu */}
+        <div style={{
+          width: "60px",
+          height: "60px",
+          backgroundColor: "#EBF3EC",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 20px auto",
+          color: "#4A7C59"
+        }}>
+          <Check style={{ width: "32px", height: "32px", strokeWidth: 2.5 }} />
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold text-[#2D2421] mb-2 font-serif">
+        {/* Naslov */}
+        <h1 style={{
+          fontSize: "26px",
+          fontWeight: "700",
+          color: "#2C221E",
+          margin: "0 0 10px 0"
+        }}>
           Bestellung erfolgreich!
         </h1>
-        
-        <p className="text-[#7A6B63] text-sm mb-6">
-          Vielen Dank, <strong className="text-[#2D2421]">{name}</strong>! Ihre Zahlung über{" "}
-          <strong className="text-[#2D2421]">{amount} €</strong> wurde erfolgreich erfasst.
+
+        <p style={{
+          fontSize: "15px",
+          color: "#6B5E57",
+          lineHeight: "1.5",
+          margin: "0 0 24px 0"
+        }}>
+          Vielen Dank, <strong style={{ color: "#2C221E" }}>{name}</strong>! Ihre Zahlung über{" "}
+          <strong style={{ color: "#2C221E" }}>{amount} €</strong> wurde erfolgreich erfasst.
         </p>
 
-        {/* Order Details Card */}
-        <div className="bg-[#FAF7F4] rounded-2xl p-5 text-left text-sm text-[#5C4D43] space-y-3 mb-8 border border-[#F0EAE4]">
-          <div className="flex items-start gap-2">
+        {/* Detalji narudžbe u sivo-krem kartici */}
+        <div style={{
+          backgroundColor: "#F8F6F2",
+          borderRadius: "16px",
+          padding: "18px 20px",
+          textAlign: "left",
+          fontSize: "14px",
+          color: "#4A3E39",
+          marginBottom: "28px",
+          border: "1px solid rgba(0,0,0,0.03)"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "12px" }}>
             <span>📅</span>
             <div>
-              <span className="font-semibold text-[#2D2421]">Wunschtermin:</span>{" "}
-              {date}
+              <span style={{ fontWeight: "600", color: "#2C221E" }}>Wunschtermin:</span> {date}
             </div>
           </div>
 
-          <div className="flex items-start gap-2">
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "12px" }}>
             <span>📍</span>
             <div>
-              <span className="font-semibold text-[#2D2421]">Lieferadresse:</span>{" "}
-              {address}
+              <span style={{ fontWeight: "600", color: "#2C221E" }}>Lieferadresse:</span> {address}
             </div>
           </div>
 
-          <div className="flex items-start gap-2">
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
             <span>💳</span>
             <div>
-              <span className="font-semibold text-[#2D2421]">Zahlungsart:</span>{" "}
-              {method}
+              <span style={{ fontWeight: "600", color: "#2C221E" }}>Zahlungsart:</span> {method}
             </div>
           </div>
         </div>
 
-        {/* Back Button */}
+        {/* Dugme za povratak na početnu */}
         <Link
           href="/"
-          className="inline-block w-full py-3.5 px-6 rounded-full bg-[#5C4D43] text-white font-medium hover:bg-[#4A3D35] transition-colors"
+          style={{
+            display: "inline-block",
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "14px 24px",
+            borderRadius: "30px",
+            backgroundColor: "#5C4A42",
+            color: "#FFFFFF",
+            textDecoration: "none",
+            fontWeight: "600",
+            fontSize: "15px",
+            transition: "all 0.2s ease"
+          }}
         >
           Zurück zur Startseite
         </Link>
@@ -72,7 +128,7 @@ function SuccessContent() {
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FDFBF9] flex items-center justify-center">Laden...</div>}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Laden...</div>}>
       <SuccessContent />
     </Suspense>
   );

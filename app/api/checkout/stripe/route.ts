@@ -25,22 +25,10 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }));
 
-    // Dodajemo dostavu 5 €
-    lineItems.push({
-      price_data: {
-        currency: "eur",
-        product_data: {
-          name: "Lieferung in Düsseldorf (oder Abholung)",
-        },
-        unit_amount: 500,
-      },
-      quantity: 1,
-    });
-
-    // Računamo ukupan iznos za prikaz na success stranici
-    const totalAmount = (
-      items.reduce((acc: number, item: any) => acc + Number(item.price) * item.quantity, 0) + 5
-    ).toFixed(2);
+    // Računamo tačan ukupan iznos iz korpe (bez automatskog dodavanja 5€)
+    const totalAmount = items
+      .reduce((acc: number, item: any) => acc + Number(item.price) * item.quantity, 0)
+      .toFixed(2);
 
     const fullName = customerData.firstName
       ? `${customerData.firstName} ${customerData.lastName || ""}`.trim()
