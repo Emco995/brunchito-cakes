@@ -77,8 +77,11 @@ export default function Home() {
   const minDate = tomorrow.toISOString().split("T")[0];
 
   useEffect(() => {
+    // Forsiramo skrol na sam vrh pri učitavanju
+    window.scrollTo(0, 0);
     const timer = setTimeout(() => {
       setIsLoading(false);
+      window.scrollTo(0, 0);
     }, 2200);
     return () => clearTimeout(timer);
   }, []);
@@ -130,26 +133,22 @@ export default function Home() {
     customerData.address &&
     customerData.phone;
 
-  // FIKSIRANI SCROLL KOJI ČEKA DA SE MOBILNI MENI SKLOPI
+  // PRECIZNO SKROLOVANJE NA VRH SEKCIJE
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
+    
+    const element = document.getElementById(id);
+    if (element) {
+      const headerOffset = 70;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - headerOffset;
 
-    setTimeout(() => {
-      const element = document.getElementById(id);
-      if (element) {
-        const headerHeight = 70;
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = element.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition - headerHeight;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth"
-        });
-      }
-    }, 50);
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
   };
 
   const handleStripeCheckout = async (e: React.FormEvent) => {
@@ -219,6 +218,9 @@ export default function Home() {
           html {
             scroll-behavior: smooth;
           }
+          .section-scroll {
+            scroll-margin-top: 75px;
+          }
           .desktop-nav {
             display: flex;
             gap: 22px;
@@ -234,6 +236,9 @@ export default function Home() {
             .mobile-hamburger {
               display: flex;
             }
+            .section-scroll {
+              scroll-margin-top: 65px;
+            }
           }
         `}</style>
         
@@ -243,7 +248,7 @@ export default function Home() {
             <motion.div
               key="preloader"
               initial={{ opacity: 1 }}
-              exit={{ y: "-100%", transition: { duration: 0.85, ease: [0.76, 0, 0.24, 1] } }}
+              exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
               style={{
                 position: "fixed",
                 inset: 0,
@@ -304,7 +309,7 @@ export default function Home() {
         <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.98)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             
-            <a href="#" style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
               <div style={{ 
                 width: "50px", 
                 height: "50px", 
@@ -368,31 +373,35 @@ export default function Home() {
 
           </div>
 
-          {/* MOBILE MENU */}
+          {/* OVERLAY MOBILNI MENI (NE REMETI VISINU DOKUMENTA) */}
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
                 style={{ 
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  backgroundColor: "rgba(247, 244, 238, 0.98)",
+                  borderBottom: "1px solid #E5DFD3",
+                  boxShadow: "0 10px 25px rgba(59, 40, 27, 0.08)",
                   display: "flex", 
                   flexDirection: "column", 
                   alignItems: "center", 
                   textAlign: "center", 
                   gap: "14px", 
-                  paddingTop: "18px", 
-                  paddingBottom: "12px", 
-                  borderTop: "1px solid #E5DFD3", 
-                  marginTop: "12px",
-                  willChange: "transform, opacity"
+                  padding: "20px 0",
+                  zIndex: 50
                 }}
               >
-                <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Über uns</a>
-                <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Torten</a>
-                <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bestellung</a>
-                <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "4px 0", width: "100%" }}>Bewertungen</a>
+                <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Über uns</a>
+                <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Torten</a>
+                <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bestellung</a>
+                <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bewertungen</a>
               </motion.div>
             )}
           </AnimatePresence>
@@ -400,11 +409,7 @@ export default function Home() {
 
         {/* HERO */}
         <section style={{ padding: "60px 20px 40px", textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: isLoading ? 2.3 : 0.05 }}
-          >
+          <div>
             <div style={{ display: "inline-block", backgroundColor: "#EDE6DA", color: "#7A5C43", padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", marginBottom: "16px", letterSpacing: "1px" }}>
               FRISCH UND MIT LIEBE GEBACKEN
             </div>
@@ -414,20 +419,18 @@ export default function Home() {
             <p style={{ fontSize: "16px", color: "#6A584A", lineHeight: 1.6, maxWidth: "580px", margin: "0 auto 26px", fontWeight: "400" }}>
               Entdecken Sie unsere handgefertigten Premium-Torten in Düsseldorf. Einfach online auswählen, Wunschtermin für Abholung oder Lieferung angeben und bequem bezahlen.
             </p>
-            <motion.a
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
+            <a
               href="#torten"
               onClick={(e) => scrollToSection(e, "torten")}
               style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "12px 28px", borderRadius: "30px", fontSize: "15px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px" }}
             >
               Unsere Torten entdecken
-            </motion.a>
-          </motion.div>
+            </a>
+          </div>
         </section>
 
         {/* ÜBER UNS */}
-        <section id="ueber-uns" style={{ backgroundColor: "#EDE6DA", padding: "60px 20px" }}>
+        <section id="ueber-uns" className="section-scroll" style={{ backgroundColor: "#EDE6DA", padding: "60px 20px" }}>
           <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "36px", alignItems: "center" }}>
             <div>
               <span style={{ color: "#7A5C43", fontSize: "12px", fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase" }}>Brunchito cakes Düsseldorf</span>
@@ -457,8 +460,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TORTEN - SAVRŠENO FOKUSIRANE I CENTRIRANE NA TORTU */}
-        <section id="torten" style={{ padding: "70px 20px 80px", maxWidth: "1300px", margin: "0 auto" }}>
+        {/* TORTEN */}
+        <section id="torten" className="section-scroll" style={{ padding: "70px 20px 80px", maxWidth: "1300px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
             <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Unsere Auswahl</h2>
             <p style={{ color: "#7A5C43", fontSize: "15px" }}>Jede Torte reicht für ca. 8-10 Personen (Ø 20cm)</p>
@@ -477,9 +480,8 @@ export default function Home() {
                 viewport={{ once: true, margin: "-30px" }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
                 whileHover={{ y: -5 }}
-                style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)", willChange: "transform" }}
+                style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)" }}
               >
-                {/* OKVIR ZA SLIKU SA OPTIMALNIM POMJERANJEM PREMA GORE */}
                 <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", backgroundColor: "#F0EAE1", overflow: "hidden" }}>
                   <img
                     src={cake.image}
@@ -489,7 +491,7 @@ export default function Home() {
                       width: "100%", 
                       height: "100%", 
                       objectFit: "cover", 
-                      objectPosition: "center 78%", // Spušta gornji zid i dovodi tortu tačno u središte kadra
+                      objectPosition: "center 78%",
                       transform: "scale(1.1)", 
                       transition: "transform 0.3s ease" 
                     }}
@@ -530,7 +532,7 @@ export default function Home() {
         </section>
 
         {/* BESTELLUNG */}
-        <section id="bestellung" style={{ backgroundColor: "#F2ECE1", padding: "70px 20px" }}>
+        <section id="bestellung" className="section-scroll" style={{ backgroundColor: "#F2ECE1", padding: "70px 20px" }}>
           <div style={{ maxWidth: "1150px", margin: "0 auto", textAlign: "center" }}>
             <span style={{ color: "#7A5C43", fontSize: "12px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", display: "inline-block", marginBottom: "40px" }}>
               THREE STEPS TO YOUR CAKE
@@ -572,7 +574,7 @@ export default function Home() {
         </section>
 
         {/* BEWERTUNGEN */}
-        <section id="bewertungen" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
+        <section id="bewertungen" className="section-scroll" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
           <div style={{ textAlign: "center", marginBottom: "30px" }}>
             <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
             <p style={{ color: "#7A5C43", fontSize: "15px", margin: 0 }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
