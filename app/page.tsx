@@ -170,28 +170,21 @@ export default function Home() {
         return;
       }
     } catch (err) {
-      console.log("Stripe test mode redirect");
+      console.log("Stripe checkout error", err);
+      setIsSubmitting(false);
     }
-
-    const queryParams = new URLSearchParams({
-      name: `${customerData.firstName} ${customerData.lastName}`,
-      total: totalAmount.toFixed(2),
-      date: customerData.date,
-      address: customerData.address,
-      method: "Kreditkarte",
-    });
-
-    setCart([]);
-    setIsCartOpen(false);
-    router.push(`/success?${queryParams.toString()}`);
   };
 
   const handlePayPalSuccess = () => {
+    const fullName = customerData.firstName
+      ? `${customerData.firstName} ${customerData.lastName || ""}`.trim()
+      : "Kunde";
+
     const queryParams = new URLSearchParams({
-      name: `${customerData.firstName} ${customerData.lastName}`,
-      total: totalAmount.toFixed(2),
-      date: customerData.date,
-      address: customerData.address,
+      name: fullName,
+      amount: totalAmount.toFixed(2),
+      date: customerData.date || "Wird abgestimmt",
+      address: customerData.address || "Vor Ort Abholung",
       method: "PayPal",
     });
 
@@ -209,7 +202,7 @@ export default function Home() {
   };
 
   return (
-    <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "EUR" }}>
+    <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "", currency: "EUR", intent: "capture" }}>
       <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
         <style>{`
           html {
