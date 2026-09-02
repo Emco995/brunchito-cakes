@@ -10,6 +10,7 @@ interface Cake {
   price: number;
   image: string;
   badge?: string;
+  imageOffset?: string;
 }
 
 interface CartItem extends Cake {
@@ -19,7 +20,7 @@ interface CartItem extends Cake {
 const cakes: Cake[] = [
   { id: 1, name: "Pistachio Cheesecake", price: 50.0, image: "/cake-pistachio.jpeg", badge: "Bestseller" },
   { id: 2, name: "Lotus Cheesecake", price: 45.0, image: "/cake-lotus.jpeg" },
-  { id: 3, name: "Coconut Cheesecake", price: 45.0, image: "/cake-coconut.jpeg" },
+  { id: 3, name: "Coconut Cheesecake", price: 45.0, image: "/cake-coconut.jpeg", imageOffset: "translateY(7px)" },
   { id: 4, name: "Nougat Cheesecake", price: 45.0, image: "/cake-chocolate.jpeg" }
 ];
 
@@ -482,7 +483,7 @@ export default function Home() {
                       height: "100%", 
                       objectFit: "cover", 
                       objectPosition: "center 78%",
-                      transform: "scale(1.1)", 
+                      transform: cake.imageOffset ? `scale(1.1) ${cake.imageOffset}` : "scale(1.1)", 
                       transition: "transform 0.3s ease" 
                     }}
                   />
