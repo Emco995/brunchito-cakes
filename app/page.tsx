@@ -676,11 +676,18 @@ export default function Home() {
                 <span>📍</span>
                 <span>Düsseldorf, Deutschland</span>
               </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 16px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
                 </svg>
                 <a href="tel:+491782083381" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>+49 178 2083381</a>
+              </p>
+              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 16px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9CFC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+                <a href="mailto:brunchito@outlook.com" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>brunchito@outlook.com</a>
               </p>
 
               <p style={{ color: "white", fontSize: "13px", fontWeight: "600", margin: "0 0 6px 0" }}>
