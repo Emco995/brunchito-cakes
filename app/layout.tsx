@@ -4,7 +4,8 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://brunchito.de';
+// Direktno fiksirano na produkcijsku domenu kako preview nikada ne bi povukao Vercel adresu
+const siteUrl = 'https://brunchito.de';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   description:
     'Ručno rađene premium torte i poslastice po narudžbi u Düsseldorfu. Svježi sastojci, unikatne dekoracije i brza dostava.',
   alternates: {
-    canonical: './',
+    canonical: siteUrl,
   },
   icons: {
     icon: [
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/opengraph-image.png',
+        url: '/cake-strawberry.jpeg',
         width: 1200,
         height: 630,
         alt: 'Brunchito Cakes Düsseldorf',
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
     title: 'Brunchito Cakes | Domaće torte Düsseldorf',
     description:
       'Ručno rađene premium torte i poslastice po narudžbi u Düsseldorfu.',
-    images: ['/opengraph-image.png'],
+    images: ['/cake-strawberry.jpeg'],
   },
 };
 
@@ -70,10 +71,10 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'Bakery',
     name: 'Brunchito Cakes',
-    image: `${siteUrl}/opengraph-image.png`,
+    image: `${siteUrl}/cake-strawberry.jpeg`,
     '@id': siteUrl,
     url: siteUrl,
-    telephone: '+4917600000000', // Zamijeni svojim kontakt telefonom
+    telephone: '+491782083381',
     priceRange: '€€',
     address: {
       '@type': 'PostalAddress',
