@@ -54,8 +54,8 @@ const allReviews = [
   { name: "Juan O.", city: "Düsseldorf-Flingern", text: "Brunchito Cakes ist ab jetzt meine erste Anlaufstelle für jeden Anlass. Qualität, die man mit jedem Bissen schmeckt." }
 ];
 
-// Blokirani datumi za odmor (11.09.2026 - 14.09.2026)
-const BLOCKED_DATES = ["2026-09-11", "2026-09-12", "2026-09-13", "2026-09-14"];
+// Blokirani datumi za odmor (11.09.2026 - 13.09.2026)
+const BLOCKED_DATES = ["2026-09-11", "2026-09-12", "2026-09-13"];
 
 export default function Home() {
   const router = useRouter();
@@ -127,7 +127,7 @@ export default function Home() {
 
     if (name === "date") {
       if (BLOCKED_DATES.includes(value)) {
-        setDateError("Vom 11.09. bis 14.09. befinden wir uns im Betriebsurlaub. Bitte wählen Sie ein anderes Datum.");
+        setDateError("Vom 11.09. bis 13.09. befinden wir uns im Betriebsurlaub. Bitte wählen Sie ein anderes Datum.");
         setCustomerData((prev) => ({ ...prev, date: "" }));
         return;
       } else {
@@ -831,7 +831,7 @@ export default function Home() {
                         <div style={{ backgroundColor: "#FFF4E5", border: "1px solid #F5D0A9", borderRadius: "8px", padding: "8px 10px", marginBottom: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
                           <span style={{ fontSize: "14px" }}>🏖️</span>
                           <span style={{ fontSize: "11px", color: "#8A5314", fontWeight: "600", lineHeight: 1.3 }}>
-                            Betriebsurlaub: 11.09. – 14.09. (Keine Bestellungen möglich)
+                            Betriebsurlaub: 11.09. – 13.09. (Keine Bestellungen möglich)
                           </span>
                         </div>
 
