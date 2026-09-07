@@ -54,6 +54,9 @@ const allReviews = [
   { name: "Juan O.", city: "Düsseldorf-Flingern", text: "Brunchito Cakes ist ab jetzt meine erste Anlaufstelle für jeden Anlass. Qualität, die man mit jedem Bissen schmeckt." }
 ];
 
+// Blokirani datumi za odmor (11.09.2026 - 14.09.2026)
+const BLOCKED_DATES = ["2026-09-11", "2026-09-12", "2026-09-13", "2026-09-14"];
+
 export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +66,7 @@ export default function Home() {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
   const [reviewPage, setReviewPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dateError, setDateError] = useState("");
 
   const [customerData, setCustomerData] = useState({
     date: "",
@@ -119,14 +123,27 @@ export default function Home() {
   const currentReviews = allReviews.slice(reviewPage * 3, reviewPage * 3 + 3);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomerData({
-      ...customerData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+
+    if (name === "date") {
+      if (BLOCKED_DATES.includes(value)) {
+        setDateError("Vom 11.09. bis 14.09. befinden wir uns im Betriebsurlaub. Bitte wählen Sie ein anderes Datum.");
+        setCustomerData((prev) => ({ ...prev, date: "" }));
+        return;
+      } else {
+        setDateError("");
+      }
+    }
+
+    setCustomerData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const isFormValid =
     customerData.date &&
+    !BLOCKED_DATES.includes(customerData.date) &&
     customerData.firstName &&
     customerData.lastName &&
     customerData.address &&
@@ -152,7 +169,7 @@ export default function Home() {
   const handleStripeCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
-      alert("Bitte füllen Sie alle Pflichtfelder aus.");
+      alert("Bitte füllen Sie alle Pflichtfelder aus und wählen Sie ein gültiges Lieferdatum.");
       return;
     }
 
@@ -809,6 +826,15 @@ export default function Home() {
                         <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
                           Wunschtermin (Abholung/Lieferung)*:
                         </label>
+                        
+                        {/* OBAVEŠTENJE O ODMORU */}
+                        <div style={{ backgroundColor: "#FFF4E5", border: "1px solid #F5D0A9", borderRadius: "8px", padding: "8px 10px", marginBottom: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
+                          <span style={{ fontSize: "14px" }}>🏖️</span>
+                          <span style={{ fontSize: "11px", color: "#8A5314", fontWeight: "600", lineHeight: 1.3 }}>
+                            Betriebsurlaub: 11.09. – 14.09. (Keine Bestellungen möglich)
+                          </span>
+                        </div>
+
                         <input 
                           type="date" 
                           name="date"
@@ -816,11 +842,18 @@ export default function Home() {
                           required
                           value={customerData.date}
                           onChange={handleInputChange}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box", cursor: "pointer" }} 
+                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: dateError ? "1.5px solid #D9534F" : "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box", cursor: "pointer" }} 
                         />
-                        <span style={{ fontSize: "11px", color: "#8C7B6D", marginTop: "4px", display: "block" }}>
-                          ℹ️ Bestellungen sind ab morgen möglich (Zubereitungs- & Ruhezeit).
-                        </span>
+                        
+                        {dateError ? (
+                          <span style={{ fontSize: "11px", color: "#D9534F", marginTop: "4px", display: "block", fontWeight: "600" }}>
+                            ⚠️ {dateError}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "11px", color: "#8C7B6D", marginTop: "4px", display: "block" }}>
+                            ℹ️ Bestellungen sind ab morgen möglich (Zubereitungs- & Ruhezeit).
+                          </span>
+                        )}
                       </div>
 
                       {/* VORNAME & NACHNAME */}
@@ -959,8 +992,20 @@ export default function Home() {
                       <button
                         type="submit"
                         form="order-form"
-                        disabled={isSubmitting}
-                        style={{ width: "100%", backgroundColor: "#7A5C43", color: "white", padding: "12px", borderRadius: "10px", border: "none", fontSize: "15px", fontWeight: "700", cursor: isSubmitting ? "not-allowed" : "pointer", letterSpacing: "0.5px", opacity: isSubmitting ? 0.7 : 1 }}
+                        disabled={isSubmitting || !isFormValid}
+                        style={{ 
+                          width: "100%", 
+                          backgroundColor: "#7A5C43", 
+                          color: "white", 
+                          padding: "12px", 
+                          borderRadius: "10px", 
+                          border: "none", 
+                          fontSize: "15px", 
+                          fontWeight: "700", 
+                          cursor: isSubmitting || !isFormValid ? "not-allowed" : "pointer", 
+                          letterSpacing: "0.5px", 
+                          opacity: isSubmitting || !isFormValid ? 0.6 : 1 
+                        }}
                       >
                         {isSubmitting ? "Wird verarbeitet..." : `Jetzt mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
                       </button>
