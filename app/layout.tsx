@@ -4,17 +4,16 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// Direktno fiksirano na produkcijsku domenu kako preview nikada ne bi povukao Vercel adresu
 const siteUrl = 'https://brunchito.de';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Brunchito Cakes | Domaće torte Düsseldorf',
+    default: 'Brunchito Cakes | Artisan patisserie Düsseldorf',
     template: '%s | Brunchito Cakes',
   },
   description:
-    'Ručno rađene premium torte i poslastice po narudžbi u Düsseldorfu. Svježi sastojci, unikatne dekoracije i brza dostava.',
+    'Handgemachte Premium-Torten in Düsseldorf. Frisch mit Liebe gebacken für besondere Anlässe. Jetzt online vorbestellen.',
   alternates: {
     canonical: siteUrl,
   },
@@ -37,28 +36,28 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Brunchito Cakes | Domaće torte Düsseldorf',
+    title: 'Brunchito Cakes | Artisan patisserie Düsseldorf',
     description:
-      'Ručno rađene premium torte i poslastice po narudžbi u Düsseldorfu.',
+      'Handgemachte Premium-Torten in Düsseldorf. Frisch mit Liebe gebacken für besondere Anlässe. Jetzt online vorbestellen.',
     url: siteUrl,
     siteName: 'Brunchito Cakes',
     locale: 'de_DE',
     type: 'website',
     images: [
       {
-        url: '/cake-strawberry.jpeg',
+        url: `${siteUrl}/opengraph-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Brunchito Cakes Düsseldorf',
+        alt: 'Brunchito Cakes - Artisan patisserie Düsseldorf',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Brunchito Cakes | Domaće torte Düsseldorf',
+    title: 'Brunchito Cakes | Artisan patisserie Düsseldorf',
     description:
-      'Ručno rađene premium torte i poslastice po narudžbi u Düsseldorfu.',
-    images: ['/cake-strawberry.jpeg'],
+      'Handgemachte Premium-Torten in Düsseldorf. Frisch mit Liebe gebacken für besondere Anlässe. Jetzt online vorbestellen.',
+    images: [`${siteUrl}/opengraph-image.png`],
   },
 };
 
@@ -71,7 +70,7 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'Bakery',
     name: 'Brunchito Cakes',
-    image: `${siteUrl}/cake-strawberry.jpeg`,
+    image: `${siteUrl}/opengraph-image.png`,
     '@id': siteUrl,
     url: siteUrl,
     telephone: '+491782083381',
