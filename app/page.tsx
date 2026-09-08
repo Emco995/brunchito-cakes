@@ -141,13 +141,14 @@ export default function Home() {
     }));
   };
 
-  const isFormValid =
+  const isFormValid = Boolean(
     customerData.date &&
     !BLOCKED_DATES.includes(customerData.date) &&
-    customerData.firstName &&
-    customerData.lastName &&
-    customerData.address &&
-    customerData.phone;
+    customerData.firstName.trim() &&
+    customerData.lastName.trim() &&
+    customerData.address.trim() &&
+    customerData.phone.trim()
+  );
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -957,15 +958,21 @@ export default function Home() {
                     </div>
 
                     {paymentMethod === "paypal" ? (
-                      <div>
+                      <div style={{ position: "relative", zIndex: 10, width: "100%", minHeight: "44px" }}>
                         {!isFormValid && (
-                          <p style={{ fontSize: "12px", color: "#C09062", margin: "0 0 8px", textAlign: "center" }}>
-                            * Bitte füllen Sie das Formular aus, um mit PayPal zu bezahlen.
+                          <p style={{ fontSize: "12px", color: "#C09062", margin: "0 0 8px", textAlign: "center", fontWeight: "500" }}>
+                            * Bitte füllen Sie das Formular vollständig aus, um PayPal zu nutzen.
                           </p>
                         )}
                         <PayPalButtons
-                          style={{ layout: "vertical", height: 42 }}
-                          disabled={!isFormValid}
+                          style={{ layout: "vertical", height: 44, shape: "rect" }}
+                          onClick={(data, actions) => {
+                            if (!isFormValid) {
+                              alert("Bitte füllen Sie alle Pflichtfelder und den Wunschtermin aus, bevor Sie mit PayPal fortfahren.");
+                              return actions.reject();
+                            }
+                            return actions.resolve();
+                          }}
                           createOrder={(data, actions) => {
                             return actions.order.create({
                               intent: "CAPTURE",
@@ -975,7 +982,7 @@ export default function Home() {
                                     currency_code: "EUR",
                                     value: totalAmount.toFixed(2),
                                   },
-                                  description: `Tortenbestellung für ${customerData.firstName} ${customerData.lastName}`,
+                                  description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
                                 },
                               ],
                             });
@@ -985,6 +992,10 @@ export default function Home() {
                               await actions.order.capture();
                               handlePayPalSuccess();
                             }
+                          }}
+                          onError={(err) => {
+                            console.error("PayPal Execution Error:", err);
+                            alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte versuchen Sie es erneut oder wählen Sie die Kreditkarte.");
                           }}
                         />
                       </div>
