@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 
 interface Cake {
   id: number;
@@ -56,6 +56,72 @@ const allReviews = [
 
 // Blokirani datumi za odmor (11.09.2026 - 13.09.2026)
 const BLOCKED_DATES = ["2026-09-11", "2026-09-12", "2026-09-13"];
+
+function SafePayPalSection({
+  totalAmount,
+  customerData,
+  validateFormBeforePay,
+  handlePayPalSuccess
+}: {
+  totalAmount: number;
+  customerData: { date: string; firstName: string; lastName: string; address: string; phone: string };
+  validateFormBeforePay: () => boolean;
+  handlePayPalSuccess: () => void;
+}) {
+  const [{ isPending, isRejected }] = usePayPalScriptReducer();
+
+  if (isPending) {
+    return (
+      <div style={{ textAlign: "center", padding: "12px", color: "#7A5C43", fontSize: "13px", fontWeight: "600" }}>
+        PayPal wird geladen...
+      </div>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <div style={{ backgroundColor: "#FDF2F2", border: "1px solid #F8B4B4", borderRadius: "8px", padding: "10px", textAlign: "center", fontSize: "12px", color: "#9B1C1C", fontWeight: "500" }}>
+        ⚠️ PayPal konnte nicht geladen werden (Client-ID prüfen). Bitte nutzen Sie die Kartenzahlung.
+      </div>
+    );
+  }
+
+  return (
+    <PayPalButtons
+      style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
+      onClick={(data, actions) => {
+        if (!validateFormBeforePay()) {
+          return actions.reject();
+        }
+        return actions.resolve();
+      }}
+      createOrder={(data, actions) => {
+        return actions.order.create({
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                currency_code: "EUR",
+                value: totalAmount.toFixed(2),
+              },
+              description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
+            },
+          ],
+        });
+      }}
+      onApprove={async (data, actions) => {
+        if (actions.order) {
+          await actions.order.capture();
+          handlePayPalSuccess();
+        }
+      }}
+      onError={(err) => {
+        console.error("PayPal Error:", err);
+        alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte prüfen Sie Ihre Verbindung oder nutzen Sie die Kartenzahlung.");
+      }}
+    />
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -933,7 +999,7 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* CHECKOUT DUGMAD - UVEK VIDLJIVA OBA NAČINA */}
+                {/* CHECKOUT DUGMAD */}
                 {cart.length > 0 && (
                   <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF", display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
@@ -972,40 +1038,13 @@ export default function Home() {
                       <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
                     </div>
 
-                    {/* PAYPAL DUGME */}
+                    {/* PAYPAL DUGME SA DETEKCIJOM STATUSA */}
                     <div style={{ width: "100%", minHeight: "44px", position: "relative", zIndex: 10 }}>
-                      <PayPalButtons
-                        style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
-                        onClick={(data, actions) => {
-                          if (!validateFormBeforePay()) {
-                            return actions.reject();
-                          }
-                          return actions.resolve();
-                        }}
-                        createOrder={(data, actions) => {
-                          return actions.order.create({
-                            intent: "CAPTURE",
-                            purchase_units: [
-                              {
-                                amount: {
-                                  currency_code: "EUR",
-                                  value: totalAmount.toFixed(2),
-                                },
-                                description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
-                              },
-                            ],
-                          });
-                        }}
-                        onApprove={async (data, actions) => {
-                          if (actions.order) {
-                            await actions.order.capture();
-                            handlePayPalSuccess();
-                          }
-                        }}
-                        onError={(err) => {
-                          console.error("PayPal Error:", err);
-                          alert("PayPal konnte nicht geöffnet werden. Bitte prüfen Sie Ihre Verbindung oder nutzen Sie Kartenzahlung.");
-                        }}
+                      <SafePayPalSection
+                        totalAmount={totalAmount}
+                        customerData={customerData}
+                        validateFormBeforePay={validateFormBeforePay}
+                        handlePayPalSuccess={handlePayPalSuccess}
                       />
                     </div>
                   </div>
