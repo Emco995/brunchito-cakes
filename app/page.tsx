@@ -81,7 +81,7 @@ function SafePayPalSection({
   if (isRejected) {
     return (
       <div style={{ backgroundColor: "#FDF2F2", border: "1px solid #F8B4B4", borderRadius: "8px", padding: "10px", textAlign: "center", fontSize: "12px", color: "#9B1C1C", fontWeight: "500" }}>
-        ⚠️ PayPal konnte nicht geladen werden (Client-ID prüfen). Bitte nutzen Sie die Kartenzahlung.
+        ⚠️ PayPal konnte nicht geladen werden. Bitte nutzen Sie die Kartenzahlung.
       </div>
     );
   }
@@ -296,7 +296,14 @@ export default function Home() {
   };
 
   return (
-    <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "", currency: "EUR", intent: "capture" }}>
+    <PayPalScriptProvider
+      options={{
+        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+        currency: "EUR",
+        intent: "capture",
+        "disable-funding": "card,sepa,giropay,sofort"
+      }}
+    >
       <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
         <style>{`
           html {
@@ -1038,7 +1045,7 @@ export default function Home() {
                       <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
                     </div>
 
-                    {/* PAYPAL DUGME SA DETEKCIJOM STATUSA */}
+                    {/* ČISTO PAYPAL DUGME BEZ SEPA I DODATNIH KARTICA */}
                     <div style={{ width: "100%", minHeight: "44px", position: "relative", zIndex: 10 }}>
                       <SafePayPalSection
                         totalAmount={totalAmount}
