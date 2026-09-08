@@ -63,7 +63,6 @@ export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
   const [reviewPage, setReviewPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState("");
@@ -141,18 +140,9 @@ export default function Home() {
     }));
   };
 
-  const isFormValid = Boolean(
-    customerData.date &&
-    !BLOCKED_DATES.includes(customerData.date) &&
-    customerData.firstName.trim() &&
-    customerData.lastName.trim() &&
-    customerData.address.trim() &&
-    customerData.phone.trim()
-  );
-
   const validateFormBeforePay = () => {
     if (!customerData.date) {
-      alert("Bitte wählen Sie zuerst Ihren gewünschten Liefer- oder Abholtermin.");
+      alert("Bitte wählen Sie zuerst Ihren gewünschten Liefer- oder Abholtermin aus.");
       return false;
     }
     if (!customerData.firstName.trim() || !customerData.lastName.trim()) {
@@ -939,119 +929,85 @@ export default function Home() {
                           style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box" }} 
                         />
                       </div>
-
-                      {/* ZAHLUNGSART */}
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "6px" }}>
-                          Zahlungsart wählen:
-                        </label>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => setPaymentMethod("card")}
-                            style={{ padding: "8px", borderRadius: "8px", border: paymentMethod === "card" ? "2px solid #7A5C43" : "1px solid #D9CFC1", backgroundColor: paymentMethod === "card" ? "#F7F4EE" : "white", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}
-                          >
-                            💳 Kreditkarte
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPaymentMethod("paypal")}
-                            style={{ padding: "8px", borderRadius: "8px", border: paymentMethod === "paypal" ? "2px solid #7A5C43" : "1px solid #D9CFC1", backgroundColor: paymentMethod === "paypal" ? "#F7F4EE" : "white", fontWeight: "600", fontSize: "12px", cursor: "pointer", color: "#003087" }}
-                          >
-                            🅿️ PayPal
-                          </button>
-                        </div>
-                      </div>
                     </form>
                   )}
                 </div>
 
-                {/* CHECKOUT DUGME */}
+                {/* CHECKOUT DUGMAD - UVEK VIDLJIVA OBA NAČINA */}
                 {cart.length > 0 && (
-                  <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                  <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
                       <span style={{ fontSize: "14px", color: "#6A584A", fontWeight: "500" }}>Gesamtsumme ({totalItems} {totalItems === 1 ? "Artikel" : "Artikel"}):</span>
                       <span style={{ fontSize: "20px", fontWeight: "700", color: "#2B2118" }}>
                         {totalAmount.toFixed(2)} €
                       </span>
                     </div>
 
-                    {paymentMethod === "paypal" ? (
-                      <div style={{ position: "relative", zIndex: 10, width: "100%", minHeight: "44px" }}>
-                        {!isFormValid ? (
-                          <button
-                            type="button"
-                            onClick={validateFormBeforePay}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#FFC439",
-                              color: "#003087",
-                              padding: "12px",
-                              borderRadius: "10px",
-                              border: "none",
-                              fontSize: "14px",
-                              fontWeight: "700",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "8px"
-                            }}
-                          >
-                            <span>🅿️ Weiter zu PayPal</span>
-                          </button>
-                        ) : (
-                          <PayPalButtons
-                            style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
-                            createOrder={(data, actions) => {
-                              return actions.order.create({
-                                intent: "CAPTURE",
-                                purchase_units: [
-                                  {
-                                    amount: {
-                                      currency_code: "EUR",
-                                      value: totalAmount.toFixed(2),
-                                    },
-                                    description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
-                                  },
-                                ],
-                              });
-                            }}
-                            onApprove={async (data, actions) => {
-                              if (actions.order) {
-                                await actions.order.capture();
-                                handlePayPalSuccess();
-                              }
-                            }}
-                            onError={(err) => {
-                              console.error("PayPal Execution Error:", err);
-                              alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte versuchen Sie es erneut oder wählen Sie die Kreditkarte.");
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        type="submit"
-                        form="order-form"
-                        disabled={isSubmitting}
-                        style={{ 
-                          width: "100%", 
-                          backgroundColor: "#7A5C43", 
-                          color: "white", 
-                          padding: "12px", 
-                          borderRadius: "10px", 
-                          border: "none", 
-                          fontSize: "15px", 
-                          fontWeight: "700", 
-                          cursor: isSubmitting ? "not-allowed" : "pointer", 
-                          letterSpacing: "0.5px", 
-                          opacity: isSubmitting ? 0.6 : 1 
+                    {/* DUGME ZA KARTICU */}
+                    <button
+                      type="submit"
+                      form="order-form"
+                      disabled={isSubmitting}
+                      style={{ 
+                        width: "100%", 
+                        backgroundColor: "#7A5C43", 
+                        color: "white", 
+                        padding: "12px", 
+                        borderRadius: "10px", 
+                        border: "none", 
+                        fontSize: "15px", 
+                        fontWeight: "700", 
+                        cursor: isSubmitting ? "not-allowed" : "pointer", 
+                        letterSpacing: "0.5px", 
+                        opacity: isSubmitting ? 0.7 : 1 
+                      }}
+                    >
+                      {isSubmitting ? "Wird verarbeitet..." : `💳 Mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
+                    </button>
+
+                    {/* RAZDJELNIK */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "2px 0" }}>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
+                      <span style={{ fontSize: "11px", color: "#8C7B6D", textTransform: "uppercase", fontWeight: "600" }}>oder direkt</span>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
+                    </div>
+
+                    {/* PAYPAL DUGME */}
+                    <div style={{ width: "100%", minHeight: "44px", position: "relative", zIndex: 10 }}>
+                      <PayPalButtons
+                        style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
+                        onClick={(data, actions) => {
+                          if (!validateFormBeforePay()) {
+                            return actions.reject();
+                          }
+                          return actions.resolve();
                         }}
-                      >
-                        {isSubmitting ? "Wird verarbeitet..." : `Jetzt mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
-                      </button>
-                    )}
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            intent: "CAPTURE",
+                            purchase_units: [
+                              {
+                                amount: {
+                                  currency_code: "EUR",
+                                  value: totalAmount.toFixed(2),
+                                },
+                                description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
+                              },
+                            ],
+                          });
+                        }}
+                        onApprove={async (data, actions) => {
+                          if (actions.order) {
+                            await actions.order.capture();
+                            handlePayPalSuccess();
+                          }
+                        }}
+                        onError={(err) => {
+                          console.error("PayPal Error:", err);
+                          alert("PayPal konnte nicht geöffnet werden. Bitte prüfen Sie Ihre Verbindung oder nutzen Sie Kartenzahlung.");
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </motion.div>
