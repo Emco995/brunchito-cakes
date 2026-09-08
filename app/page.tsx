@@ -150,6 +150,26 @@ export default function Home() {
     customerData.phone.trim()
   );
 
+  const validateFormBeforePay = () => {
+    if (!customerData.date) {
+      alert("Bitte wählen Sie zuerst Ihren gewünschten Liefer- oder Abholtermin.");
+      return false;
+    }
+    if (!customerData.firstName.trim() || !customerData.lastName.trim()) {
+      alert("Bitte tragen Sie Vor- und Nachnamen ein.");
+      return false;
+    }
+    if (!customerData.address.trim()) {
+      alert("Bitte tragen Sie Ihre Adresse ein.");
+      return false;
+    }
+    if (!customerData.phone.trim()) {
+      alert("Bitte tragen Sie Ihre Telefonnummer für eventuelle Rückfragen ein.");
+      return false;
+    }
+    return true;
+  };
+
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
@@ -169,8 +189,7 @@ export default function Home() {
 
   const handleStripeCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) {
-      alert("Bitte füllen Sie alle Pflichtfelder aus und wählen Sie ein gültiges Lieferdatum.");
+    if (!validateFormBeforePay()) {
       return;
     }
 
@@ -959,51 +978,63 @@ export default function Home() {
 
                     {paymentMethod === "paypal" ? (
                       <div style={{ position: "relative", zIndex: 10, width: "100%", minHeight: "44px" }}>
-                        {!isFormValid && (
-                          <p style={{ fontSize: "12px", color: "#C09062", margin: "0 0 8px", textAlign: "center", fontWeight: "500" }}>
-                            * Bitte füllen Sie das Formular vollständig aus, um PayPal zu nutzen.
-                          </p>
-                        )}
-                        <PayPalButtons
-                          style={{ layout: "vertical", height: 44, shape: "rect" }}
-                          onClick={(data, actions) => {
-                            if (!isFormValid) {
-                              alert("Bitte füllen Sie alle Pflichtfelder und den Wunschtermin aus, bevor Sie mit PayPal fortfahren.");
-                              return actions.reject();
-                            }
-                            return actions.resolve();
-                          }}
-                          createOrder={(data, actions) => {
-                            return actions.order.create({
-                              intent: "CAPTURE",
-                              purchase_units: [
-                                {
-                                  amount: {
-                                    currency_code: "EUR",
-                                    value: totalAmount.toFixed(2),
+                        {!isFormValid ? (
+                          <button
+                            type="button"
+                            onClick={validateFormBeforePay}
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#FFC439",
+                              color: "#003087",
+                              padding: "12px",
+                              borderRadius: "10px",
+                              border: "none",
+                              fontSize: "14px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "8px"
+                            }}
+                          >
+                            <span>🅿️ Weiter zu PayPal</span>
+                          </button>
+                        ) : (
+                          <PayPalButtons
+                            style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
+                            createOrder={(data, actions) => {
+                              return actions.order.create({
+                                intent: "CAPTURE",
+                                purchase_units: [
+                                  {
+                                    amount: {
+                                      currency_code: "EUR",
+                                      value: totalAmount.toFixed(2),
+                                    },
+                                    description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
                                   },
-                                  description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
-                                },
-                              ],
-                            });
-                          }}
-                          onApprove={async (data, actions) => {
-                            if (actions.order) {
-                              await actions.order.capture();
-                              handlePayPalSuccess();
-                            }
-                          }}
-                          onError={(err) => {
-                            console.error("PayPal Execution Error:", err);
-                            alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte versuchen Sie es erneut oder wählen Sie die Kreditkarte.");
-                          }}
-                        />
+                                ],
+                              });
+                            }}
+                            onApprove={async (data, actions) => {
+                              if (actions.order) {
+                                await actions.order.capture();
+                                handlePayPalSuccess();
+                              }
+                            }}
+                            onError={(err) => {
+                              console.error("PayPal Execution Error:", err);
+                              alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte versuchen Sie es erneut oder wählen Sie die Kreditkarte.");
+                            }}
+                          />
+                        )}
                       </div>
                     ) : (
                       <button
                         type="submit"
                         form="order-form"
-                        disabled={isSubmitting || !isFormValid}
+                        disabled={isSubmitting}
                         style={{ 
                           width: "100%", 
                           backgroundColor: "#7A5C43", 
@@ -1013,9 +1044,9 @@ export default function Home() {
                           border: "none", 
                           fontSize: "15px", 
                           fontWeight: "700", 
-                          cursor: isSubmitting || !isFormValid ? "not-allowed" : "pointer", 
+                          cursor: isSubmitting ? "not-allowed" : "pointer", 
                           letterSpacing: "0.5px", 
-                          opacity: isSubmitting || !isFormValid ? 0.6 : 1 
+                          opacity: isSubmitting ? 0.6 : 1 
                         }}
                       >
                         {isSubmitting ? "Wird verarbeitet..." : `Jetzt mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
