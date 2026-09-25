@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@next/third-parties": "^16.3.6",
     "@paypal/react-paypal-js": "^10.4.0",
     "@stripe/stripe-js": "^9.14.0",
     "framer-motion": "^13.1.1",
