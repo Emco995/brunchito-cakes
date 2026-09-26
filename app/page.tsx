@@ -21,7 +21,7 @@ const cakes: Cake[] = [
   { id: 1, name: "Pistachio Cheesecake", price: 50.0, image: "/cake-pistachio.jpeg", badge: "Bestseller" },
   { id: 2, name: "Lotus Cheesecake", price: 45.0, image: "/cake-lotus.jpeg" },
   { id: 3, name: "Coconut Cheesecake", price: 45.0, image: "/cake-coconut.jpeg", imageOffset: "translateY(14px)" },
-  { id: 4, name: "Nougat Cheesecake", price: 45.0, image: "/cake-chocolate.jpeg" }
+  { id: 4, name: "Nougat Cheesecake", price: 45.0, image: "/cake-nougat-new.jpeg" }
 ];
 
 const steps = [
@@ -54,17 +54,16 @@ const allReviews = [
   { name: "Juan O.", city: "Düsseldorf-Flingern", text: "Brunchito Cakes ist ab jetzt meine erste Anlaufstelle für jeden Anlass. Qualität, die man mit jedem Bissen schmeckt." }
 ];
 
-// Blokirani datumi za odmor (11.09.2026 - 13.09.2026)
-const BLOCKED_DATES = ["2026-09-11", "2026-09-12", "2026-09-13"];
-
 function SafePayPalSection({
   totalAmount,
   customerData,
+  deliveryMethod,
   validateFormBeforePay,
   handlePayPalSuccess
 }: {
   totalAmount: number;
   customerData: { date: string; firstName: string; lastName: string; address: string; phone: string };
+  deliveryMethod: "pickup" | "delivery";
   validateFormBeforePay: () => boolean;
   handlePayPalSuccess: () => void;
 }) {
@@ -96,6 +95,7 @@ function SafePayPalSection({
         return actions.resolve();
       }}
       createOrder={(data, actions) => {
+        const orderDesc = `Tortenbestellung: ${customerData.firstName} ${customerData.lastName} (${deliveryMethod === "delivery" ? "Lieferung" : "Abholung"})`;
         return actions.order.create({
           intent: "CAPTURE",
           purchase_units: [
@@ -104,7 +104,7 @@ function SafePayPalSection({
                 currency_code: "EUR",
                 value: totalAmount.toFixed(2),
               },
-              description: `Tortenbestellung: ${customerData.firstName} ${customerData.lastName}`,
+              description: orderDesc,
             },
           ],
         });
@@ -131,7 +131,7 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [reviewPage, setReviewPage] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dateError, setDateError] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"pickup" | "delivery">("pickup");
 
   const [customerData, setCustomerData] = useState({
     date: "",
@@ -182,24 +182,15 @@ export default function Home() {
     );
   };
 
-  const totalAmount = cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+  const itemsAmount = cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+  const deliveryFee = deliveryMethod === "delivery" ? 5.0 : 0.0;
+  const totalAmount = itemsAmount + deliveryFee;
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const currentReviews = allReviews.slice(reviewPage * 3, reviewPage * 3 + 3);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    if (name === "date") {
-      if (BLOCKED_DATES.includes(value)) {
-        setDateError("Vom 11.09. bis 13.09. befinden wir uns im Betriebsurlaub. Bitte wählen Sie ein anderes Datum.");
-        setCustomerData((prev) => ({ ...prev, date: "" }));
-        return;
-      } else {
-        setDateError("");
-      }
-    }
-
     setCustomerData((prev) => ({
       ...prev,
       [name]: value
@@ -255,7 +246,12 @@ export default function Home() {
       const response = await fetch("/api/checkout/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart, customerData }),
+        body: JSON.stringify({ 
+          items: cart, 
+          customerData,
+          deliveryMethod,
+          deliveryFee
+        }),
       });
 
       const data = await response.json();
@@ -280,6 +276,7 @@ export default function Home() {
       date: customerData.date || "Wird abgestimmt",
       address: customerData.address || "Vor Ort Abholung",
       method: "PayPal",
+      delivery: deliveryMethod === "delivery" ? "Lieferung (+5 €)" : "Abholung (kostenlos)"
     });
 
     setCart([]);
@@ -898,25 +895,85 @@ export default function Home() {
 
                   {/* FORMULAR */}
                   {cart.length > 0 && (
-                    <form id="order-form" onSubmit={handleStripeCheckout} style={{ backgroundColor: "#FFFFFF", padding: "16px", borderRadius: "14px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <form id="order-form" onSubmit={handleStripeCheckout} style={{ backgroundColor: "#FFFFFF", padding: "16px", borderRadius: "14px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", gap: "14px" }}>
                       
                       <h4 style={{ fontSize: "14px", fontWeight: "700", color: "#2B2118", margin: "0 0 2px" }}>
-                        Bestelldaten & Lieferadresse
+                        Bestelldaten & Details
                       </h4>
+
+                      {/* ODABIR DOSTAVE ILI PREUZIMANJA */}
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "#5C4636", marginBottom: "6px" }}>
+                          Art der Übergabe wählen*:
+                        </label>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <label
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 12px",
+                              borderRadius: "10px",
+                              border: deliveryMethod === "pickup" ? "1.8px solid #7A5C43" : "1px solid #E5DFD3",
+                              backgroundColor: deliveryMethod === "pickup" ? "#FAF7F2" : "#FFFFFF",
+                              cursor: "pointer"
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <input
+                                type="radio"
+                                name="deliveryMethod"
+                                value="pickup"
+                                checked={deliveryMethod === "pickup"}
+                                onChange={() => setDeliveryMethod("pickup")}
+                                style={{ accentColor: "#7A5C43", cursor: "pointer" }}
+                              />
+                              <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
+                                🛍️ Selbstabholung vor Ort
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "12px", fontWeight: "700", color: "#2E7D32" }}>
+                              Kostenlos
+                            </span>
+                          </label>
+
+                          <label
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 12px",
+                              borderRadius: "10px",
+                              border: deliveryMethod === "delivery" ? "1.8px solid #7A5C43" : "1px solid #E5DFD3",
+                              backgroundColor: deliveryMethod === "delivery" ? "#FAF7F2" : "#FFFFFF",
+                              cursor: "pointer"
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <input
+                                type="radio"
+                                name="deliveryMethod"
+                                value="delivery"
+                                checked={deliveryMethod === "delivery"}
+                                onChange={() => setDeliveryMethod("delivery")}
+                                style={{ accentColor: "#7A5C43", cursor: "pointer" }}
+                              />
+                              <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
+                                🚗 Lieferung in Düsseldorf
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "12px", fontWeight: "700", color: "#7A5C43" }}>
+                              +5,00 €
+                            </span>
+                          </label>
+                        </div>
+                      </div>
 
                       {/* WUNSCHTERMIN */}
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                          Wunschtermin (Abholung/Lieferung)*:
+                          Wunschtermin ({deliveryMethod === "delivery" ? "Lieferung" : "Abholung"})*:
                         </label>
-                        
-                        {/* OBAVEŠTENJE O ODMORU */}
-                        <div style={{ backgroundColor: "#FFF4E5", border: "1px solid #F5D0A9", borderRadius: "8px", padding: "8px 10px", marginBottom: "8px", display: "flex", gap: "6px", alignItems: "center" }}>
-                          <span style={{ fontSize: "14px" }}>🏖️</span>
-                          <span style={{ fontSize: "11px", color: "#8A5314", fontWeight: "600", lineHeight: 1.3 }}>
-                            Betriebsurlaub: 11.09. – 13.09. (Keine Bestellungen möglich)
-                          </span>
-                        </div>
 
                         <input 
                           type="date" 
@@ -925,18 +982,11 @@ export default function Home() {
                           required
                           value={customerData.date}
                           onChange={handleInputChange}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: dateError ? "1.5px solid #D9534F" : "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box", cursor: "pointer" }} 
+                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box", cursor: "pointer" }} 
                         />
-                        
-                        {dateError ? (
-                          <span style={{ fontSize: "11px", color: "#D9534F", marginTop: "4px", display: "block", fontWeight: "600" }}>
-                            ⚠️ {dateError}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: "11px", color: "#8C7B6D", marginTop: "4px", display: "block" }}>
-                            ℹ️ Bestellungen sind ab morgen möglich (Zubereitungs- & Ruhezeit).
-                          </span>
-                        )}
+                        <span style={{ fontSize: "11px", color: "#8C7B6D", marginTop: "4px", display: "block" }}>
+                          ℹ️ Bestellungen sind ab morgen möglich (Zubereitungs- & Ruhezeit).
+                        </span>
                       </div>
 
                       {/* VORNAME & NACHNAME */}
@@ -974,7 +1024,7 @@ export default function Home() {
                       {/* ADRESA */}
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                          Wohnadresse / Straße & Hausnummer*:
+                          {deliveryMethod === "delivery" ? "Lieferadresse (Straße & Hausnummer)*:" : "Wohnadresse (Straße & Hausnummer)*:"}
                         </label>
                         <input 
                           type="text" 
@@ -1009,11 +1059,29 @@ export default function Home() {
                 {/* CHECKOUT DUGMAD */}
                 {cart.length > 0 && (
                   <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                      <span style={{ fontSize: "14px", color: "#6A584A", fontWeight: "500" }}>Gesamtsumme ({totalItems} {totalItems === 1 ? "Artikel" : "Artikel"}):</span>
-                      <span style={{ fontSize: "20px", fontWeight: "700", color: "#2B2118" }}>
-                        {totalAmount.toFixed(2)} €
-                      </span>
+                    
+                    {/* RAČUN I ZBROJ */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "4px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "13px", color: "#6A584A" }}>Zwischensumme:</span>
+                        <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>{itemsAmount.toFixed(2)} €</span>
+                      </div>
+                      
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "13px", color: "#6A584A" }}>
+                          {deliveryMethod === "delivery" ? "Lieferung in Düsseldorf:" : "Übergabe (Abholung):"}
+                        </span>
+                        <span style={{ fontSize: "13px", fontWeight: "600", color: deliveryMethod === "delivery" ? "#7A5C43" : "#2E7D32" }}>
+                          {deliveryMethod === "delivery" ? "+5,00 €" : "0,00 €"}
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #E5DFD3", paddingTop: "6px", marginTop: "2px" }}>
+                        <span style={{ fontSize: "14px", color: "#2B2118", fontWeight: "700" }}>Gesamtsumme:</span>
+                        <span style={{ fontSize: "20px", fontWeight: "700", color: "#7A5C43" }}>
+                          {totalAmount.toFixed(2)} €
+                        </span>
+                      </div>
                     </div>
 
                     {/* DUGME ZA KARTICU */}
@@ -1045,11 +1113,12 @@ export default function Home() {
                       <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
                     </div>
 
-                    {/* ČISTO PAYPAL DUGME BEZ SEPA I DODATNIH KARTICA */}
+                    {/* PAYPAL DUGME */}
                     <div style={{ width: "100%", minHeight: "44px", position: "relative", zIndex: 10 }}>
                       <SafePayPalSection
                         totalAmount={totalAmount}
                         customerData={customerData}
+                        deliveryMethod={deliveryMethod}
                         validateFormBeforePay={validateFormBeforePay}
                         handlePayPalSuccess={handlePayPalSuccess}
                       />
