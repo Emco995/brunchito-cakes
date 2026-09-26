@@ -58,8 +58,8 @@ export default function ImpressumPage() {
             Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG):
           </h2>
           <p style={{ margin: "0 0 20px 0" }}>
-            <strong>Brunchito cakes</strong><br />
-            [Dino Hodzic des Inhabers]<br />
+            <strong>Brunchito</strong><br />
+            [Dino Hodzic]<br />
             [Brunnenstraße 13]<br />
             [40223 Düsseldorf]<br />
             Deutschland

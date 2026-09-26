@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -110,10 +111,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
-        {/* Semantički main wrapper oko stranice */}
+        {/* Glavni sadržaj stranice */}
         <main className="min-h-screen flex flex-col">
           {children}
         </main>
+
+        {/* Google Analytics 4 */}
+        <GoogleAnalytics gaId="G-73Q51RHH0R" />
       </body>
     </html>
   );
