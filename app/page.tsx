@@ -46,7 +46,7 @@ const steps = [
 const allReviews = [
   { name: "Laura M.", city: "Düsseldorf-Oberkassel", text: "Der Lotus Cheesecake war das absolute Highlight auf meiner Geburtstagsfeier! Unglaublich frisch und nicht zu süß." },
   { name: "Stefan & Elena", city: "Düsseldorf-Pempelfort", text: "Wunderschönes Design und ein himmlischer Geschmack. Werden definitiv für die nächste Feier wieder bestellen!" },
-  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich geliefert, liebevoll dekoriert und geschmachklich eine 10/10. Sehr zu empfehlen!" },
+  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich geliefert, liebevoll dekoriert und geschmacklich eine 10/10. Sehr zu empfehlen!" },
   { name: "Maximilian B.", city: "Düsseldorf-MedienHafen", text: "Der Pistachio Cheesecake hat alle Erwartungen übertroffen. So samtig und fein abgeschmeckt – pure Handwerkskunst!" },
   { name: "Sarah A.", city: "Düsseldorf-Carlstadt", text: "Endlich eine Patisserie in Düsseldorf, die mit so viel Liebe zum Detail bäckt. Die Optik ist einfach Instagram-ready." },
   { name: "David & Anna", city: "Meerbusch", text: "Hatten den Nougat Cheesecake für unser Jubiläum bestellt. Alle Gäste waren restlos begeistert. Vielen Dank!" },
@@ -915,7 +915,7 @@ export default function Home() {
                         Bestelldaten & Details
                       </h4>
 
-                      {/* ODABIR DOSTAVE ILI PREUZIMANJA */}
+                      {/* ODABIR DOSTAVE ILI PREUZIMANJA (BEZ IKONICA) */}
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "#5C4636", marginBottom: "6px" }}>
                           Art der Übergabe wählen*:
@@ -943,7 +943,7 @@ export default function Home() {
                                 style={{ accentColor: "#7A5C43", cursor: "pointer" }}
                               />
                               <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
-                                🛍️ Selbstabholung vor Ort
+                                Selbstabholung vor Ort
                               </span>
                             </div>
                             <span style={{ fontSize: "12px", fontWeight: "700", color: "#2E7D32" }}>
@@ -973,7 +973,7 @@ export default function Home() {
                                 style={{ accentColor: "#7A5C43", cursor: "pointer" }}
                               />
                               <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
-                                🚗 Lieferung in Düsseldorf
+                                Lieferung in Düsseldorf
                               </span>
                             </div>
                             <span style={{ fontSize: "12px", fontWeight: "700", color: "#7A5C43" }}>
