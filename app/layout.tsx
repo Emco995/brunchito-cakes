@@ -116,8 +116,8 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* Google Analytics 4 */}
-        <GoogleAnalytics gaId="G-73Q51RHH0R" />
+        {/* Google Analytics 4 sa novim ID-jem */}
+        <GoogleAnalytics gaId="G-V4C3HY8X7L" />
       </body>
     </html>
   );
