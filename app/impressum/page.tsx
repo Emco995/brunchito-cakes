@@ -60,8 +60,8 @@ export default function ImpressumPage() {
           <p style={{ margin: "0 0 20px 0" }}>
             <strong>Brunchito cakes</strong><br />
             [Dino Hodzic des Inhabers]<br />
-            [Musterstraße 12]<br />
-            [40213 Düsseldorf]<br />
+            [Brunnenstraße 13]<br />
+            [40223 Düsseldorf]<br />
             Deutschland
           </p>
 
