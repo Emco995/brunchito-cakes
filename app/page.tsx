@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 
 interface Cake {
@@ -45,7 +46,7 @@ const steps = [
 const allReviews = [
   { name: "Laura M.", city: "Düsseldorf-Oberkassel", text: "Der Lotus Cheesecake war das absolute Highlight auf meiner Geburtstagsfeier! Unglaublich frisch und nicht zu süß." },
   { name: "Stefan & Elena", city: "Düsseldorf-Pempelfort", text: "Wunderschönes Design und ein himmlischer Geschmack. Werden definitiv für die nächste Feier wieder bestellen!" },
-  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich geliefert, liebevoll dekoriert und geschmacklich eine 10/10. Sehr zu empfehlen!" },
+  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich geliefert, liebevoll dekoriert und geschmachklich eine 10/10. Sehr zu empfehlen!" },
   { name: "Maximilian B.", city: "Düsseldorf-MedienHafen", text: "Der Pistachio Cheesecake hat alle Erwartungen übertroffen. So samtig und fein abgeschmeckt – pure Handwerkskunst!" },
   { name: "Sarah A.", city: "Düsseldorf-Carlstadt", text: "Endlich eine Patisserie in Düsseldorf, die mit so viel Liebe zum Detail bäckt. Die Optik ist einfach Instagram-ready." },
   { name: "David & Anna", city: "Meerbusch", text: "Hatten den Nougat Cheesecake für unser Jubiläum bestellt. Alle Gäste waren restlos begeistert. Vielen Dank!" },
@@ -830,9 +831,22 @@ export default function Home() {
             </div>
           </div>
           
-          <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", marginTop: "26px" }}>
-            © 2026 Brunchito cakes Düsseldorf. Alle Rechte vorbehalten.
-          </p>
+          {/* PRAVNI LINKOVI & AUTORSKA PRAVA */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", marginTop: "26px" }}>
+            <div style={{ display: "flex", gap: "20px", fontSize: "13px" }}>
+              <Link href="/impressum" style={{ color: "#D9CFC1", textDecoration: "none", opacity: 0.85, transition: "opacity 0.2s ease" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}>
+                Impressum
+              </Link>
+              <span style={{ color: "#786759" }}>•</span>
+              <Link href="/datenschutz" style={{ color: "#D9CFC1", textDecoration: "none", opacity: 0.85, transition: "opacity 0.2s ease" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}>
+                Datenschutz
+              </Link>
+            </div>
+            
+            <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", margin: 0 }}>
+              © 2026 Brunchito cakes Düsseldorf. Alle Rechte vorbehalten.
+            </p>
+          </div>
         </footer>
 
         {/* SLIDE-OVER CART */}
