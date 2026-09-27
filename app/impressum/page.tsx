@@ -59,9 +59,9 @@ export default function ImpressumPage() {
           </h2>
           <p style={{ margin: "0 0 20px 0" }}>
             <strong>Brunchito</strong><br />
-            [Dino Hodzic]<br />
-            [Brunnenstraße 13]<br />
-            [40223 Düsseldorf]<br />
+            Dino Hodzic<br />
+            Brunnenstraße 13<br />
+            40223 Düsseldorf<br />
             Deutschland
           </p>
 
