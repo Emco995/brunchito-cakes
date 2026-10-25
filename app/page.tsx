@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 
 interface Cake {
@@ -831,18 +830,8 @@ export default function Home() {
             </div>
           </div>
           
-          {/* PRAVNI LINKOVI & AUTORSKA PRAVA */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", marginTop: "26px" }}>
-            <div style={{ display: "flex", gap: "20px", fontSize: "13px" }}>
-              <Link href="/impressum" style={{ color: "#D9CFC1", textDecoration: "none", opacity: 0.85, transition: "opacity 0.2s ease" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}>
-                Impressum
-              </Link>
-              <span style={{ color: "#786759" }}>•</span>
-              <Link href="/datenschutz" style={{ color: "#D9CFC1", textDecoration: "none", opacity: 0.85, transition: "opacity 0.2s ease" }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}>
-                Datenschutz
-              </Link>
-            </div>
-            
+          {/* AUTORSKA PRAVA */}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "26px" }}>
             <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", margin: 0 }}>
               © 2026 Brunchito cakes Düsseldorf. Alle Rechte vorbehalten.
             </p>
@@ -915,7 +904,7 @@ export default function Home() {
                         Bestelldaten & Details
                       </h4>
 
-                      {/* ODABIR DOSTAVE ILI PREUZIMANJA (BEZ IKONICA) */}
+                      {/* ODABIR DOSTAVE ILI PREUZIMANJA */}
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "#5C4636", marginBottom: "6px" }}>
                           Art der Übergabe wählen*:
