@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 
 interface Cake {
   id: number;
@@ -13,15 +11,11 @@ interface Cake {
   imageOffset?: string;
 }
 
-interface CartItem extends Cake {
-  quantity: number;
-}
-
 const cakes: Cake[] = [
-  { id: 1, name: "Pistachio Cheesecake", price: 50.0, image: "/cake-pistachio.jpeg", badge: "Bestseller" },
-  { id: 2, name: "Lotus Cheesecake", price: 45.0, image: "/cake-lotus.jpeg" },
-  { id: 3, name: "Coconut Cheesecake", price: 45.0, image: "/cake-coconut.jpeg", imageOffset: "translateY(14px)" },
-  { id: 4, name: "Nougat Cheesecake", price: 45.0, image: "/cake-nougat-new.jpeg" }
+  { id: 1, name: "Pistachio Cheesecake", price: 39.0, image: "/cake-pistachio.jpeg", badge: "Bestseller" },
+  { id: 2, name: "Lotus Cheesecake", price: 35.0, image: "/cake-lotus.jpeg" },
+  { id: 3, name: "Coconut Cheesecake", price: 35.0, image: "/cake-coconut.jpeg", imageOffset: "translateY(14px)" },
+  { id: 4, name: "Nougat Cheesecake", price: 35.0, image: "/cake-nougat-new.jpeg" }
 ];
 
 const steps = [
@@ -32,118 +26,32 @@ const steps = [
   },
   {
     number: "02",
-    title: "Wunschtermin wählen",
-    description: "Reserviere den Tag, an dem deine Torte frisch für dich gebacken wird."
+    title: "Wunschtermin abstimmen",
+    description: "Teilen Sie uns Ihren Wunschtermin mit, damit Ihre Torte frisch zubereitet wird."
   },
   {
     number: "03",
-    title: "Abholung oder Lieferung",
-    description: "Nur 5 € für die Lieferung in Düsseldorf – oder kostenlose Abholung vor Ort."
+    title: "Persönlicher Kontakt",
+    description: "Kontaktieren Sie uns direkt per Telefon oder WhatsApp für weitere Details."
   }
 ];
 
 const allReviews = [
   { name: "Laura M.", city: "Düsseldorf-Oberkassel", text: "Der Lotus Cheesecake war das absolute Highlight auf meiner Geburtstagsfeier! Unglaublich frisch und nicht zu süß." },
-  { name: "Stefan & Elena", city: "Düsseldorf-Pempelfort", text: "Wunderschönes Design und ein himmlischer Geschmack. Werden definitiv für die nächste Feier wieder bestellen!" },
-  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich geliefert, liebevoll dekoriert und geschmacklich eine 10/10. Sehr zu empfehlen!" },
+  { name: "Stefan & Elena", city: "Düsseldorf-Pempelfort", text: "Wunderschönes Design und ein himmlischer Geschmack. Werden definitiv für die nächste Feier wieder anfragen!" },
+  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich fertig, liebevoll dekoriert und geschmacklich eine 10/10. Sehr zu empfehlen!" },
   { name: "Maximilian B.", city: "Düsseldorf-MedienHafen", text: "Der Pistachio Cheesecake hat alle Erwartungen übertroffen. So samtig und fein abgeschmeckt – pure Handwerkskunst!" },
   { name: "Sarah A.", city: "Düsseldorf-Carlstadt", text: "Endlich eine Patisserie in Düsseldorf, die mit so viel Liebe zum Detail bäckt. Die Optik ist einfach Instagram-ready." },
-  { name: "David & Anna", city: "Meerbusch", text: "Hatten den Nougat Cheesecake für unser Jubiläum bestellt. Alle Gäste waren restlos begeistert. Vielen Dank!" },
+  { name: "David & Anna", city: "Meerbusch", text: "Hatten den Nougat Cheesecake für unser Jubiläum. Alle Gäste waren restlos begeistert. Vielen Dank!" },
   { name: "Carolin H.", city: "Düsseldorf-Derendorf", text: "Der Coconut Cheesecake war ein Traum! Leicht, sommerlich und wunderschön verziert mit den kleinen Blüten." },
-  { name: "Felix T.", city: "Düsseldorf-Benrath", text: "Der Bestellprozess war super unkompliziert und die Torte pünktlich abholbereit. Großes Lob an das gesamte Team!" },
+  { name: "Felix T.", city: "Düsseldorf-Benrath", text: "Alles war super unkompliziert und die Torte pünktlich fertig. Großes Lob an das gesamte Team!" },
   { name: "Juan O.", city: "Düsseldorf-Flingern", text: "Brunchito Cakes ist ab jetzt meine erste Anlaufstelle für jeden Anlass. Qualität, die man mit jedem Bissen schmeckt." }
 ];
 
-function SafePayPalSection({
-  totalAmount,
-  customerData,
-  deliveryMethod,
-  validateFormBeforePay,
-  handlePayPalSuccess
-}: {
-  totalAmount: number;
-  customerData: { date: string; firstName: string; lastName: string; address: string; phone: string };
-  deliveryMethod: "pickup" | "delivery";
-  validateFormBeforePay: () => boolean;
-  handlePayPalSuccess: () => void;
-}) {
-  const [{ isPending, isRejected }] = usePayPalScriptReducer();
-
-  if (isPending) {
-    return (
-      <div style={{ textAlign: "center", padding: "12px", color: "#7A5C43", fontSize: "13px", fontWeight: "600" }}>
-        PayPal wird geladen...
-      </div>
-    );
-  }
-
-  if (isRejected) {
-    return (
-      <div style={{ backgroundColor: "#FDF2F2", border: "1px solid #F8B4B4", borderRadius: "8px", padding: "10px", textAlign: "center", fontSize: "12px", color: "#9B1C1C", fontWeight: "500" }}>
-        ⚠️ PayPal konnte nicht geladen werden. Bitte nutzen Sie die Kartenzahlung.
-      </div>
-    );
-  }
-
-  return (
-    <PayPalButtons
-      style={{ layout: "vertical", height: 44, shape: "rect", label: "pay" }}
-      onClick={(data, actions) => {
-        if (!validateFormBeforePay()) {
-          return actions.reject();
-        }
-        return actions.resolve();
-      }}
-      createOrder={(data, actions) => {
-        const orderDesc = `Tortenbestellung: ${customerData.firstName} ${customerData.lastName} (${deliveryMethod === "delivery" ? "Lieferung" : "Abholung"})`;
-        return actions.order.create({
-          intent: "CAPTURE",
-          purchase_units: [
-            {
-              amount: {
-                currency_code: "EUR",
-                value: totalAmount.toFixed(2),
-              },
-              description: orderDesc,
-            },
-          ],
-        });
-      }}
-      onApprove={async (data, actions) => {
-        if (actions.order) {
-          await actions.order.capture();
-          handlePayPalSuccess();
-        }
-      }}
-      onError={(err) => {
-        console.error("PayPal Error:", err);
-        alert("Ein Fehler bei der Verbindung mit PayPal ist aufgetreten. Bitte prüfen Sie Ihre Verbindung oder nutzen Sie die Kartenzahlung.");
-      }}
-    />
-  );
-}
-
 export default function Home() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [reviewPage, setReviewPage] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState<"pickup" | "delivery">("pickup");
-
-  const [customerData, setCustomerData] = useState({
-    date: "",
-    firstName: "",
-    lastName: "",
-    address: "",
-    phone: ""
-  });
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -161,61 +69,7 @@ export default function Home() {
     return () => clearInterval(reviewInterval);
   }, []);
 
-  const addToCart = (cake: Cake) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === cake.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === cake.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { ...cake, quantity: 1 }];
-    });
-    setIsCartOpen(true);
-  };
-
-  const updateQuantity = (id: number, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((item) => (item.id === id ? { ...item, quantity: item.quantity + delta } : item))
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const itemsAmount = cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
-  const deliveryFee = deliveryMethod === "delivery" ? 5.0 : 0.0;
-  const totalAmount = itemsAmount + deliveryFee;
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
   const currentReviews = allReviews.slice(reviewPage * 3, reviewPage * 3 + 3);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCustomerData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const validateFormBeforePay = () => {
-    if (!customerData.date) {
-      alert("Bitte wählen Sie zuerst Ihren gewünschten Liefer- oder Abholtermin aus.");
-      return false;
-    }
-    if (!customerData.firstName.trim() || !customerData.lastName.trim()) {
-      alert("Bitte tragen Sie Vor- und Nachnamen ein.");
-      return false;
-    }
-    if (!customerData.address.trim()) {
-      alert("Bitte tragen Sie Ihre Adresse ein.");
-      return false;
-    }
-    if (!customerData.phone.trim()) {
-      alert("Bitte tragen Sie Ihre Telefonnummer für eventuelle Rückfragen ein.");
-      return false;
-    }
-    return true;
-  };
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -234,56 +88,6 @@ export default function Home() {
     }
   };
 
-  const handleStripeCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateFormBeforePay()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      const response = await fetch("/api/checkout/stripe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          items: cart, 
-          customerData,
-          deliveryMethod,
-          deliveryFee
-        }),
-      });
-
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
-    } catch (err) {
-      console.log("Stripe checkout error", err);
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePayPalSuccess = () => {
-    const fullName = customerData.firstName
-      ? `${customerData.firstName} ${customerData.lastName || ""}`.trim()
-      : "Kunde";
-
-    const queryParams = new URLSearchParams({
-      name: fullName,
-      amount: totalAmount.toFixed(2),
-      date: customerData.date || "Wird abgestimmt",
-      address: customerData.address || "Vor Ort Abholung",
-      method: "PayPal",
-      delivery: deliveryMethod === "delivery" ? "Lieferung (+5 €)" : "Abholung (kostenlos)"
-    });
-
-    setCart([]);
-    setIsCartOpen(false);
-    router.push(`/success?${queryParams.toString()}`);
-  };
-
   const handleSwipe = (_event: any, info: { offset: { x: number } }) => {
     if (info.offset.x < -40) {
       setReviewPage((prev) => (prev + 1) % 3);
@@ -293,847 +97,493 @@ export default function Home() {
   };
 
   return (
-    <PayPalScriptProvider
-      options={{
-        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-        currency: "EUR",
-        intent: "capture",
-        "disable-funding": "card,sepa,giropay,sofort"
-      }}
-    >
-      <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
-        <style>{`
-          html {
-            scroll-behavior: smooth;
-          }
-          .section-scroll {
-            scroll-margin-top: 75px;
-          }
+    <div style={{ backgroundColor: "#F7F4EE", color: "#3B281B", minHeight: "100vh" }}>
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+        .section-scroll {
+          scroll-margin-top: 75px;
+        }
+        .desktop-nav {
+          display: flex;
+          gap: 24px;
+          align-items: center;
+        }
+        .mobile-hamburger {
+          display: none;
+        }
+        @media (max-width: 768px) {
           .desktop-nav {
-            display: flex;
-            gap: 22px;
-            align-items: center;
-          }
-          .mobile-hamburger {
             display: none;
           }
-          @media (max-width: 768px) {
-            .desktop-nav {
-              display: none;
-            }
-            .mobile-hamburger {
-              display: flex;
-            }
-            .section-scroll {
-              scroll-margin-top: 65px;
-            }
+          .mobile-hamburger {
+            display: flex;
           }
-        `}</style>
-        
-        {/* PRELOADER */}
-        <AnimatePresence>
-          {isLoading && (
+          .section-scroll {
+            scroll-margin-top: 65px;
+          }
+        }
+      `}</style>
+      
+      {/* PRELOADER */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="preloader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99999,
+              backgroundColor: "#F2ECE1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <motion.div
-              key="preloader"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 99999,
-                backgroundColor: "#F2ECE1",
+                width: "150px",
+                height: "150px",
+                borderRadius: "50%",
+                border: "1.8px solid #7A5C43",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                backgroundColor: "transparent",
+                boxShadow: "0 10px 30px rgba(122, 92, 67, 0.08)",
               }}
             >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  borderRadius: "50%",
-                  border: "1.8px solid #7A5C43",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "transparent",
-                  boxShadow: "0 10px 30px rgba(122, 92, 67, 0.08)",
-                }}
+              <motion.span
+                initial={{ y: 5, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                style={{ fontSize: "21px", fontWeight: "600", letterSpacing: "0.5px", color: "#7A5C43", lineHeight: 1 }}
               >
-                <motion.span
-                  initial={{ y: 5, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  style={{ fontSize: "21px", fontWeight: "600", letterSpacing: "0.5px", color: "#7A5C43", lineHeight: 1 }}
-                >
-                  Brunchito
-                </motion.span>
-                <motion.span
-                  initial={{ y: 0, opacity: 1 }}
-                  style={{ fontSize: "19px", fontStyle: "italic", fontFamily: "serif", color: "#7A5C43", marginTop: "4px" }}
-                >
-                  cakes
-                </motion.span>
-              </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.85 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
-                style={{ color: "#7A5C43", fontSize: "12px", letterSpacing: "3px", textTransform: "uppercase", marginTop: "24px", fontWeight: "600" }}
+                Brunchito
+              </motion.span>
+              <motion.span
+                initial={{ y: 0, opacity: 1 }}
+                style={{ fontSize: "19px", fontStyle: "italic", fontFamily: "serif", color: "#7A5C43", marginTop: "4px" }}
               >
-                Artisan patisserie - Düsseldorf
-              </motion.p>
+                cakes
+              </motion.span>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* HEADER */}
-        <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.98)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            
-            <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
-              <div style={{ 
-                width: "50px", 
-                height: "50px", 
-                borderRadius: "50%", 
-                border: "1.2px solid #7A5C43", 
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.85 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              style={{ color: "#7A5C43", fontSize: "12px", letterSpacing: "3px", textTransform: "uppercase", marginTop: "24px", fontWeight: "600" }}
+            >
+              Artisan patisserie - Düsseldorf
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* HEADER */}
+      <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.98)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          
+          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
+            <div style={{ 
+              width: "50px", 
+              height: "50px", 
+              borderRadius: "50%", 
+              border: "1.2px solid #7A5C43", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              backgroundColor: "transparent",
+              cursor: "pointer" 
+            }}>
+              <span style={{ fontSize: "8px", fontWeight: "600", letterSpacing: "0.3px", color: "#7A5C43", lineHeight: 1 }}>Brunchito</span>
+              <span style={{ fontSize: "7px", fontStyle: "italic", fontFamily: "serif", color: "#7A5C43", marginTop: "1.5px" }}>cakes</span>
+            </div>
+          </a>
+
+          {/* DESKTOP NAV */}
+          <nav className="desktop-nav">
+            <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Über uns</a>
+            <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Torten</a>
+            <a href="#ablauf" onClick={(e) => scrollToSection(e, "ablauf")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Ablauf</a>
+            <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bewertungen</a>
+          </nav>
+
+          {/* MOBILE HAMBURGER */}
+          <div className="mobile-hamburger" style={{ alignItems: "center" }}>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px", justifyContent: "center" }}
+              aria-label="Menü"
+            >
+              <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }}></span>
+              <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "opacity 0.2s ease", opacity: isMobileMenuOpen ? 0 : 1 }}></span>
+              <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }}></span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* OVERLAY MOBILNI MENI */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              style={{ 
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                backgroundColor: "rgba(247, 244, 238, 0.98)",
+                borderBottom: "1px solid #E5DFD3",
+                boxShadow: "0 10px 25px rgba(59, 40, 27, 0.08)",
                 display: "flex", 
                 flexDirection: "column", 
                 alignItems: "center", 
-                justifyContent: "center", 
-                backgroundColor: "transparent",
-                cursor: "pointer" 
-              }}>
-                <span style={{ fontSize: "8px", fontWeight: "600", letterSpacing: "0.3px", color: "#7A5C43", lineHeight: 1 }}>Brunchito</span>
-                <span style={{ fontSize: "7px", fontStyle: "italic", fontFamily: "serif", color: "#7A5C43", marginTop: "1.5px" }}>cakes</span>
-              </div>
-            </a>
-
-            {/* DESKTOP NAV */}
-            <nav className="desktop-nav">
-              <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Über uns</a>
-              <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Torten</a>
-              <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bestellung</a>
-              <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bewertungen</a>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsCartOpen(true)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#7A5C43", color: "white", border: "none", padding: "8px 16px", borderRadius: "20px", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}
-              >
-                <span>Warenkorb</span>
-                <span style={{ backgroundColor: "#3B281B", color: "white", borderRadius: "50%", padding: "2px 7px", fontSize: "11px", minWidth: "14px", textAlign: "center" }}>
-                  {totalItems}
-                </span>
-              </motion.button>
-            </nav>
-
-            {/* MOBILE BUTTONS */}
-            <div className="mobile-hamburger" style={{ alignItems: "center", gap: "10px" }}>
-              <motion.button
-                whileTap={{ scale: 0.92 }}
-                onClick={() => setIsCartOpen(true)}
-                style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "#7A5C43", color: "white", border: "none", padding: "7px 12px", borderRadius: "20px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
-              >
-                <span>Warenkorb</span>
-                <span style={{ backgroundColor: "#3B281B", color: "white", borderRadius: "50%", padding: "2px 6px", fontSize: "10px", minWidth: "12px", textAlign: "center" }}>
-                  {totalItems}
-                </span>
-              </motion.button>
-
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px", justifyContent: "center" }}
-                aria-label="Menü"
-              >
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }}></span>
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "opacity 0.2s ease", opacity: isMobileMenuOpen ? 0 : 1 }}></span>
-                <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }}></span>
-              </button>
-            </div>
-
-          </div>
-
-          {/* OVERLAY MOBILNI MENI */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                style={{ 
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: "rgba(247, 244, 238, 0.98)",
-                  borderBottom: "1px solid #E5DFD3",
-                  boxShadow: "0 10px 25px rgba(59, 40, 27, 0.08)",
-                  display: "flex", 
-                  flexDirection: "column", 
-                  alignItems: "center", 
-                  textAlign: "center", 
-                  gap: "14px", 
-                  padding: "20px 0",
-                  zIndex: 50
-                }}
-              >
-                <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Über uns</a>
-                <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Torten</a>
-                <a href="#bestellung" onClick={(e) => scrollToSection(e, "bestellung")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bestellung</a>
-                <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bewertungen</a>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </header>
-
-        {/* HERO */}
-        <section style={{ padding: "60px 20px 40px", textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
-          <div>
-            <div style={{ display: "inline-block", backgroundColor: "#EDE6DA", color: "#7A5C43", padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", marginBottom: "16px", letterSpacing: "1px" }}>
-              FRISCH UND MIT LIEBE GEBACKEN
-            </div>
-            <h1 style={{ fontSize: "clamp(30px, 5vw, 54px)", fontWeight: "500", fontFamily: "serif", color: "#2B2118", lineHeight: 1.2, margin: "0 0 18px" }}>
-              Handgemachte Torten für unvergessliche Momente
-            </h1>
-            <p style={{ fontSize: "16px", color: "#6A584A", lineHeight: 1.6, maxWidth: "580px", margin: "0 auto 26px", fontWeight: "400" }}>
-              Entdecken Sie unsere handgefertigten Premium-Torten in Düsseldorf. Einfach online auswählen, Wunschtermin für Abholung oder Lieferung angeben und bequem bezahlen.
-            </p>
-            <a
-              href="#torten"
-              onClick={(e) => scrollToSection(e, "torten")}
-              style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "12px 28px", borderRadius: "30px", fontSize: "15px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px" }}
+                textAlign: "center", 
+                gap: "14px", 
+                padding: "20px 0",
+                zIndex: 50
+              }}
             >
-              Unsere Torten entdecken
+              <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Über uns</a>
+              <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Torten</a>
+              <a href="#ablauf" onClick={(e) => scrollToSection(e, "ablauf")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Ablauf</a>
+              <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bewertungen</a>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* HERO */}
+      <section style={{ padding: "60px 20px 40px", textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
+        <div>
+          <div style={{ display: "inline-block", backgroundColor: "#EDE6DA", color: "#7A5C43", padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", marginBottom: "16px", letterSpacing: "1px" }}>
+            FRISCH UND MIT LIEBE GEBACKEN
+          </div>
+          <h1 style={{ fontSize: "clamp(30px, 5vw, 54px)", fontWeight: "500", fontFamily: "serif", color: "#2B2118", lineHeight: 1.2, margin: "0 0 18px" }}>
+            Handgemachte Torten für unvergessliche Momente
+          </h1>
+          <p style={{ fontSize: "16px", color: "#6A584A", lineHeight: 1.6, maxWidth: "580px", margin: "0 auto 26px", fontWeight: "400" }}>
+            Entdecken Sie unsere handgefertigten Premium-Kreationen in Düsseldorf. Mit viel Liebe zum Detail, feinsten Zutaten und stilvollem Design.
+          </p>
+          <a
+            href="#torten"
+            onClick={(e) => scrollToSection(e, "torten")}
+            style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "12px 28px", borderRadius: "30px", fontSize: "15px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px" }}
+          >
+            Unsere Torten entdecken
+          </a>
+        </div>
+      </section>
+
+      {/* ÜBER UNS */}
+      <section id="ueber-uns" className="section-scroll" style={{ backgroundColor: "#EDE6DA", padding: "60px 20px" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "36px", alignItems: "center" }}>
+          <div>
+            <span style={{ color: "#7A5C43", fontSize: "12px", fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase" }}>Brunchito cakes Düsseldorf</span>
+            <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "10px 0 16px", lineHeight: 1.2 }}>
+              Dein Geschmack.<br />Dein Moment.
+            </h2>
+            <p style={{ color: "#6A584A", lineHeight: 1.6, fontSize: "15px", marginBottom: "14px" }}>
+              Bei Brunchito cakes in Düsseldorf kreieren wir exklusive Torten in sorgfältiger Handarbeit. Wir setzen auf stilvolles Boho-Design, harmonische Aromen und frische Zubereitung für die besonderen Momente im Leben.
+            </p>
+            <p style={{ color: "#6A584A", lineHeight: 1.6, fontSize: "15px", marginBottom: "18px" }}>
+              Haben Sie Fragen zu unseren Kreationen oder speziellen Wünschen? Kontaktieren Sie uns gerne direkt telefonisch oder per WhatsApp.
+            </p>
+            
+            <a
+              href="tel:+491782083381"
+              style={{ display: "inline-flex", alignItems: "center", gap: "10px", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
+              </svg>
+              <span>+49 178 2083381</span>
             </a>
           </div>
-        </section>
-
-        {/* ÜBER UNS */}
-        <section id="ueber-uns" className="section-scroll" style={{ backgroundColor: "#EDE6DA", padding: "60px 20px" }}>
-          <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "36px", alignItems: "center" }}>
-            <div>
-              <span style={{ color: "#7A5C43", fontSize: "12px", fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase" }}>Brunchito cakes Düsseldorf</span>
-              <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "10px 0 16px", lineHeight: 1.2 }}>
-                Dein Geschmack.<br />Dein Moment.
-              </h2>
-              <p style={{ color: "#6A584A", lineHeight: 1.6, fontSize: "15px", marginBottom: "14px" }}>
-                Bei Brunchito cakes in Düsseldorf kreieren wir exklusive Torten in sorgfältiger Handarbeit. Wir setzen auf stilvolles Boho-Design, harmonische Aromen und frische Zubereitung für die besonderen Momente im Leben.
-              </p>
-              <p style={{ color: "#6A584A", lineHeight: 1.6, fontSize: "15px", marginBottom: "18px" }}>
-                Haben Sie Fragen zu speziellen Wünschen oder Allergenen? Rufen Sie uns gerne direkt an oder schreiben Sie per WhatsApp.
-              </p>
-              
-              <a
-                href="tel:+491782083381"
-                style={{ display: "inline-flex", alignItems: "center", gap: "10px", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
-                </svg>
-                <span>+49 178 2083381</span>
-              </a>
-            </div>
-            <div style={{ borderRadius: "18px", overflow: "hidden", border: "1px solid #D9CFC1" }}>
-              <img src="/cake-strawberry.jpeg" alt="Brunchito Erdbeer Torte Düsseldorf" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </div>
+          <div style={{ borderRadius: "18px", overflow: "hidden", border: "1px solid #D9CFC1" }}>
+            <img src="/cake-strawberry.jpeg" alt="Brunchito Erdbeer Torte Düsseldorf" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* TORTEN */}
-        <section id="torten" className="section-scroll" style={{ padding: "70px 20px 80px", maxWidth: "1300px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Unsere Auswahl</h2>
-            <p style={{ color: "#7A5C43", fontSize: "15px" }}>Jede Torte reicht für ca. 8-10 Personen (Ø 20cm)</p>
-          </div>
+      {/* TORTEN */}
+      <section id="torten" className="section-scroll" style={{ padding: "70px 20px 80px", maxWidth: "1300px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Unsere Auswahl</h2>
+          <p style={{ color: "#7A5C43", fontSize: "15px" }}>Jede Torte reicht für ca. 8-10 Personen (Ø 20cm)</p>
+        </div>
 
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
-            gap: "20px" 
-          }}>
-            {cakes.map((cake, index) => (
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
+          gap: "20px" 
+        }}>
+          {cakes.map((cake, index) => (
+            <motion.div
+              key={cake.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              whileHover={{ y: -5 }}
+              style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)" }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", backgroundColor: "#F0EAE1", overflow: "hidden" }}>
+                <img
+                  src={cake.image}
+                  alt={cake.name}
+                  loading="lazy"
+                  style={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    objectFit: "cover", 
+                    objectPosition: "center 78%",
+                    transform: cake.imageOffset ? `scale(1.1) ${cake.imageOffset}` : "scale(1.1)", 
+                    transition: "transform 0.3s ease" 
+                  }}
+                />
+                {cake.badge && (
+                  <span style={{ position: "absolute", top: "12px", left: "12px", backgroundColor: "#7A5C43", color: "white", fontSize: "11px", fontWeight: "700", padding: "4px 9px", borderRadius: "12px", zIndex: 2 }}>
+                    {cake.badge}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ padding: "18px 16px", textAlign: "center" }}>
+                <h3 style={{ fontSize: "17px", fontWeight: "700", color: "#2B2118", margin: "0 0 6px" }}>{cake.name}</h3>
+                <p style={{ fontSize: "18px", fontWeight: "700", color: "#7A5C43", margin: "0 0 4px" }}>
+                  {cake.price.toFixed(2).replace(".", ",")} €
+                </p>
+                <p style={{ fontSize: "12px", color: "#8C7B6D", margin: 0 }}>
+                  Handgefertigt · Ø 20 cm
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ABLAUF */}
+      <section id="ablauf" className="section-scroll" style={{ backgroundColor: "#F2ECE1", padding: "70px 20px" }}>
+        <div style={{ maxWidth: "1150px", margin: "0 auto", textAlign: "center" }}>
+          <span style={{ color: "#7A5C43", fontSize: "12px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", display: "inline-block", marginBottom: "40px" }}>
+            THREE STEPS TO YOUR CAKE
+          </span>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+            {steps.map((step, idx) => (
               <motion.div
-                key={cake.id}
+                key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.4, delay: index * 0.08 }}
-                whileHover={{ y: -5 }}
-                style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", overflow: "hidden", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(59, 40, 27, 0.04)" }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                style={{
+                  backgroundColor: "#FAF7F2",
+                  borderRadius: "24px",
+                  padding: "36px 26px",
+                  textAlign: "left",
+                  border: "1px solid #E5DFD3",
+                  boxShadow: "0 6px 25px rgba(59, 40, 27, 0.03)",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                }}
               >
-                <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", backgroundColor: "#F0EAE1", overflow: "hidden" }}>
-                  <img
-                    src={cake.image}
-                    alt={cake.name}
-                    loading="lazy"
-                    style={{ 
-                      width: "100%", 
-                      height: "100%", 
-                      objectFit: "cover", 
-                      objectPosition: "center 78%",
-                      transform: cake.imageOffset ? `scale(1.1) ${cake.imageOffset}` : "scale(1.1)", 
-                      transition: "transform 0.3s ease" 
-                    }}
-                  />
-                  {cake.badge && (
-                    <span style={{ position: "absolute", top: "12px", left: "12px", backgroundColor: "#7A5C43", color: "white", fontSize: "11px", fontWeight: "700", padding: "4px 9px", borderRadius: "12px", zIndex: 2 }}>
-                      {cake.badge}
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ padding: "16px", display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "space-between" }}>
-                  <div>
-                    <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#2B2118", margin: "0 0 6px" }}>{cake.name}</h3>
-                    <p style={{ fontSize: "18px", fontWeight: "700", color: "#7A5C43", margin: "0 0 14px" }}>
-                      {cake.price.toFixed(2)} €
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => addToCart(cake)}
-                    style={{ width: "100%", backgroundColor: "#F7F4EE", color: "#3B281B", border: "1.5px solid #7A5C43", padding: "10px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "background-color 0.2s, color 0.2s" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#7A5C43";
-                      e.currentTarget.style.color = "#FFFFFF";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#F7F4EE";
-                      e.currentTarget.style.color = "#3B281B";
-                    }}
-                  >
-                    In den Warenkorb
-                  </button>
-                </div>
+                <span style={{ fontSize: "34px", fontWeight: "400", fontFamily: "serif", color: "#C09062", marginBottom: "16px", display: "block", lineHeight: 1 }}>
+                  {step.number}
+                </span>
+                <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#2B2118", margin: "0 0 12px", lineHeight: 1.25 }}>
+                  {step.title}
+                </h3>
+                <p style={{ fontSize: "15px", color: "#6A584A", lineHeight: 1.6, margin: 0 }}>
+                  {step.description}
+                </p>
               </motion.div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* BESTELLUNG */}
-        <section id="bestellung" className="section-scroll" style={{ backgroundColor: "#F2ECE1", padding: "70px 20px" }}>
-          <div style={{ maxWidth: "1150px", margin: "0 auto", textAlign: "center" }}>
-            <span style={{ color: "#7A5C43", fontSize: "12px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", display: "inline-block", marginBottom: "40px" }}>
-              THREE STEPS TO YOUR CAKE
-            </span>
+      {/* BEWERTUNGEN */}
+      <section id="bewertungen" className="section-scroll" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
+        <div style={{ textAlign: "center", marginBottom: "30px" }}>
+          <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
+          <p style={{ color: "#7A5C43", fontSize: "15px", margin: 0 }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
+          <p style={{ color: "#A89A8C", fontSize: "12px", marginTop: "6px" }}>👆 Wischen Sie nach links oder rechts für weitere Bewertungen</p>
+        </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
-              {steps.map((step, idx) => (
-                <motion.div
+        <div style={{ position: "relative", touchAction: "pan-y" }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={reviewPage}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleSwipe}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", 
+                gap: "20px",
+                cursor: "grab"
+              }}
+            >
+              {currentReviews.map((rev, idx) => (
+                <div
                   key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.1 }}
-                  style={{
-                    backgroundColor: "#FAF7F2",
-                    borderRadius: "24px",
-                    padding: "36px 26px",
-                    textAlign: "left",
-                    border: "1px solid #E5DFD3",
-                    boxShadow: "0 6px 25px rgba(59, 40, 27, 0.03)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "flex-start",
-                  }}
+                  style={{ backgroundColor: "#FFFFFF", padding: "24px", borderRadius: "16px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 4px 15px rgba(59, 40, 27, 0.03)" }}
                 >
-                  <span style={{ fontSize: "34px", fontWeight: "400", fontFamily: "serif", color: "#C09062", marginBottom: "16px", display: "block", lineHeight: 1 }}>
-                    {step.number}
-                  </span>
-                  <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#2B2118", margin: "0 0 12px", lineHeight: 1.25 }}>
-                    {step.title}
-                  </h3>
-                  <p style={{ fontSize: "15px", color: "#6A584A", lineHeight: 1.6, margin: 0 }}>
-                    {step.description}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* BEWERTUNGEN */}
-        <section id="bewertungen" className="section-scroll" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
-          <div style={{ textAlign: "center", marginBottom: "30px" }}>
-            <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
-            <p style={{ color: "#7A5C43", fontSize: "15px", margin: 0 }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
-            <p style={{ color: "#A89A8C", fontSize: "12px", marginTop: "6px" }}>👆 Wischen Sie nach links oder rechts für weitere Bewertungen</p>
-          </div>
-
-          <div style={{ position: "relative", touchAction: "pan-y" }}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={reviewPage}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={handleSwipe}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", 
-                  gap: "20px",
-                  cursor: "grab"
-                }}
-              >
-                {currentReviews.map((rev, idx) => (
-                  <div
-                    key={idx}
-                    style={{ backgroundColor: "#FFFFFF", padding: "24px", borderRadius: "16px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 4px 15px rgba(59, 40, 27, 0.03)" }}
-                  >
-                    <div>
-                      <div style={{ color: "#D4A373", fontSize: "17px", marginBottom: "10px" }}>★★★★★</div>
-                      <p style={{ color: "#5C4636", fontSize: "14px", lineHeight: 1.6, fontStyle: "italic", marginBottom: "16px" }}>"{rev.text}"</p>
-                    </div>
-                    <div>
-                      <p style={{ fontWeight: "700", color: "#2B2118", margin: 0, fontSize: "14px" }}>{rev.name}</p>
-                      <p style={{ color: "#9E8B7C", margin: 0, fontSize: "12px" }}>{rev.city}</p>
-                    </div>
+                  <div>
+                    <div style={{ color: "#D4A373", fontSize: "17px", marginBottom: "10px" }}>★★★★★</div>
+                    <p style={{ color: "#5C4636", fontSize: "14px", lineHeight: 1.6, fontStyle: "italic", marginBottom: "16px" }}>"{rev.text}"</p>
                   </div>
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "28px" }}>
-            <button
-              onClick={() => setReviewPage((prev) => (prev - 1 + 3) % 3)}
-              style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
-              aria-label="Vorherige Bewertungen"
-            >
-              ‹
-            </button>
-
-            <div style={{ display: "flex", gap: "8px" }}>
-              {[0, 1, 2].map((pageIndex) => (
-                <button
-                  key={pageIndex}
-                  onClick={() => setReviewPage(pageIndex)}
-                  style={{
-                    width: reviewPage === pageIndex ? "24px" : "8px",
-                    height: "8px",
-                    borderRadius: "4px",
-                    backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.25s ease",
-                    padding: 0,
-                  }}
-                  aria-label={`Seite ${pageIndex + 1}`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={() => setReviewPage((prev) => (prev + 1) % 3)}
-              style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
-              aria-label="Nächste Bewertungen"
-            >
-              ›
-            </button>
-          </div>
-        </section>
-
-        {/* FOOTER */}
-        <footer style={{ backgroundColor: "#2B2118", color: "#D9CFC1", padding: "50px 20px 30px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "30px", borderBottom: "1px solid #453528", paddingBottom: "36px" }}>
-            
-            {/* LIJEVA KOLONA */}
-            <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-                <div style={{ width: "44px", height: "44px", borderRadius: "50%", border: "1px solid #D9CFC1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: "7px", fontWeight: "600", color: "#F7F4EE" }}>Brunchito</span>
-                  <span style={{ fontSize: "6.5px", fontStyle: "italic", fontFamily: "serif", color: "#F7F4EE", marginTop: "1px" }}>cakes</span>
+                  <div>
+                    <p style={{ fontWeight: "700", color: "#2B2118", margin: 0, fontSize: "14px" }}>{rev.name}</p>
+                    <p style={{ color: "#9E8B7C", margin: 0, fontSize: "12px" }}>{rev.city}</p>
+                  </div>
                 </div>
-                <span style={{ fontSize: "16px", fontWeight: "600", color: "white" }}>brunchito cakes</span>
-              </div>
-              <p style={{ fontSize: "14px", color: "#A89A8C", maxWidth: "260px", margin: 0 }}>
-                Premium-Torten in Düsseldorf
-              </p>
-            </div>
-            
-            {/* SREDNJA KOLONA */}
-            <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
-                Standort & Kontakt
-              </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                <span>📍</span>
-                <span>Düsseldorf, Deutschland</span>
-              </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
-                </svg>
-                <a href="tel:+491782083381" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>+49 178 2083381</a>
-              </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 16px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9CFC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="20" height="16" x="2" y="4" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
-                <a href="mailto:brunchito@outlook.com" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>brunchito@outlook.com</a>
-              </p>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-              <p style={{ color: "white", fontSize: "13px", fontWeight: "600", margin: "0 0 6px 0" }}>
-                Folgen Sie uns auf Instagram
-              </p>
-              <a
-                href="https://instagram.com/brunchito.de"
-                target="_blank"
-                rel="noopener noreferrer"
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "28px" }}>
+          <button
+            onClick={() => setReviewPage((prev) => (prev - 1 + 3) % 3)}
+            style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
+            aria-label="Vorherige Bewertungen"
+          >
+            ‹
+          </button>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            {[0, 1, 2].map((pageIndex) => (
+              <button
+                key={pageIndex}
+                onClick={() => setReviewPage(pageIndex)}
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  color: "#D9CFC1",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  padding: "6px 12px",
-                  borderRadius: "16px",
-                  border: "1px solid rgba(217, 207, 193, 0.2)",
-                  transition: "all 0.2s ease",
-                  cursor: "pointer"
+                  width: reviewPage === pageIndex ? "24px" : "8px",
+                  height: "8px",
+                  borderRadius: "4px",
+                  backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.25s ease",
+                  padding: 0,
                 }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-                <span>@brunchito.de</span>
-              </a>
-            </div>
-
-            {/* DESNA KOLONA */}
-            <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
-                Zahlungsmethoden
-              </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0" }}>
-                Kreditkarte (Visa, Mastercard)
-              </p>
-              <p style={{ fontSize: "14px", color: "#A89A8C", margin: 0 }}>
-                PayPal
-              </p>
-            </div>
+                aria-label={`Seite ${pageIndex + 1}`}
+              />
+            ))}
           </div>
+
+          <button
+            onClick={() => setReviewPage((prev) => (prev + 1) % 3)}
+            style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
+            aria-label="Nächste Bewertungen"
+          >
+            ›
+          </button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ backgroundColor: "#2B2118", color: "#D9CFC1", padding: "50px 20px 30px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-around", alignItems: "flex-start", gap: "30px", borderBottom: "1px solid #453528", paddingBottom: "36px" }}>
           
-          {/* AUTORSKA PRAVA */}
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "26px" }}>
-            <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", margin: 0 }}>
-              © 2026 Brunchito cakes Düsseldorf. Alle Rechte vorbehalten.
+          {/* LIJEVA KOLONA */}
+          <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{ width: "44px", height: "44px", borderRadius: "50%", border: "1px solid #D9CFC1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: "7px", fontWeight: "600", color: "#F7F4EE" }}>Brunchito</span>
+                <span style={{ fontSize: "6.5px", fontStyle: "italic", fontFamily: "serif", color: "#F7F4EE", marginTop: "1px" }}>cakes</span>
+              </div>
+              <span style={{ fontSize: "16px", fontWeight: "600", color: "white" }}>brunchito cakes</span>
+            </div>
+            <p style={{ fontSize: "14px", color: "#A89A8C", maxWidth: "260px", margin: 0 }}>
+              Premium-Torten in Düsseldorf
             </p>
           </div>
-        </footer>
+          
+          {/* DESNA KOLONA */}
+          <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
+              Standort & Kontakt
+            </p>
+            <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+              <span>📍</span>
+              <span>Düsseldorf, Deutschland</span>
+            </p>
+            <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 6px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" />
+              </svg>
+              <a href="tel:+491782083381" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>+49 178 2083381</a>
+            </p>
+            <p style={{ fontSize: "14px", color: "#A89A8C", margin: "0 0 16px 0", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D9CFC1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <rect width="20" height="16" x="2" y="4" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              <a href="mailto:brunchito@outlook.com" style={{ color: "#D9CFC1", textDecoration: "none", cursor: "pointer" }}>brunchito@outlook.com</a>
+            </p>
 
-        {/* SLIDE-OVER CART */}
-        <AnimatePresence>
-          {isCartOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setIsCartOpen(false)}
-                style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", zIndex: 100, cursor: "pointer" }}
-              />
+            <p style={{ color: "white", fontSize: "13px", fontWeight: "600", margin: "0 0 6px 0" }}>
+              Folgen Sie uns auf Instagram
+            </p>
+            <a
+              href="https://instagram.com/brunchito.de"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                color: "#D9CFC1",
+                textDecoration: "none",
+                fontSize: "14px",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                padding: "6px 12px",
+                borderRadius: "16px",
+                border: "1px solid rgba(217, 207, 193, 0.2)",
+                transition: "all 0.2s ease",
+                cursor: "pointer"
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+              <span>@brunchito.de</span>
+            </a>
+          </div>
+        </div>
+        
+        {/* AUTORSKA PRAVA */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "26px" }}>
+          <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", margin: 0 }}>
+            © 2026 Brunchito cakes Düsseldorf. Alle Rechte vorbehalten.
+          </p>
+        </div>
+      </footer>
 
-              <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 28, stiffness: 260 }}
-                style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "100%", maxWidth: "480px", backgroundColor: "#F7F4EE", zIndex: 101, display: "flex", flexDirection: "column", boxShadow: "-8px 0 30px rgba(0,0,0,0.15)", willChange: "transform" }}
-              >
-                <div style={{ padding: "18px 20px", borderBottom: "1px solid #E5DFD3", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#2B2118", margin: 0 }}>
-                    Ihr Warenkorb ({totalItems} {totalItems === 1 ? "Torte" : "Torten"})
-                  </h3>
-                  <button onClick={() => setIsCartOpen(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#7A5C43" }}>✕</button>
-                </div>
-
-                <div style={{ flexGrow: 1, overflowY: "auto", padding: "18px 20px", display: "flex", flexDirection: "column", gap: "18px" }}>
-                  
-                  {/* ARTIKLI */}
-                  {cart.length === 0 ? (
-                    <p style={{ color: "#8C7B6D", textAlign: "center", marginTop: "40px", fontSize: "15px" }}>Ihr Warenkorb ist noch leer.</p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {cart.map((item) => (
-                        <div key={item.id} style={{ display: "flex", gap: "12px", backgroundColor: "#FFFFFF", padding: "12px", borderRadius: "12px", border: "1px solid #EAE4D9", alignItems: "center" }}>
-                          <img src={item.image} alt={item.name} style={{ width: "54px", height: "54px", borderRadius: "8px", objectFit: "cover" }} />
-                          <div style={{ flexGrow: 1 }}>
-                            <h4 style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 4px", color: "#2B2118" }}>{item.name}</h4>
-                            <p style={{ fontSize: "14px", fontWeight: "700", color: "#7A5C43", margin: 0 }}>
-                              {(item.price * item.quantity).toFixed(2)} €
-                              {item.quantity > 1 && (
-                                <span style={{ fontSize: "11px", fontWeight: "400", color: "#9E8B7C", marginLeft: "6px" }}>
-                                  ({item.quantity}x {item.price.toFixed(2)} €)
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <button onClick={() => updateQuantity(item.id, -1)} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #C4B5A5", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", color: "#5C4636" }}>-</button>
-                            <span style={{ fontSize: "14px", fontWeight: "700", minWidth: "16px", textAlign: "center" }}>{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, 1)} style={{ width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #C4B5A5", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", color: "#5C4636" }}>+</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* FORMULAR */}
-                  {cart.length > 0 && (
-                    <form id="order-form" onSubmit={handleStripeCheckout} style={{ backgroundColor: "#FFFFFF", padding: "16px", borderRadius: "14px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", gap: "14px" }}>
-                      
-                      <h4 style={{ fontSize: "14px", fontWeight: "700", color: "#2B2118", margin: "0 0 2px" }}>
-                        Bestelldaten & Details
-                      </h4>
-
-                      {/* ODABIR DOSTAVE ILI PREUZIMANJA */}
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "#5C4636", marginBottom: "6px" }}>
-                          Art der Übergabe wählen*:
-                        </label>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <label
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              padding: "10px 12px",
-                              borderRadius: "10px",
-                              border: deliveryMethod === "pickup" ? "1.8px solid #7A5C43" : "1px solid #E5DFD3",
-                              backgroundColor: deliveryMethod === "pickup" ? "#FAF7F2" : "#FFFFFF",
-                              cursor: "pointer"
-                            }}
-                          >
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <input
-                                type="radio"
-                                name="deliveryMethod"
-                                value="pickup"
-                                checked={deliveryMethod === "pickup"}
-                                onChange={() => setDeliveryMethod("pickup")}
-                                style={{ accentColor: "#7A5C43", cursor: "pointer" }}
-                              />
-                              <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
-                                Selbstabholung vor Ort
-                              </span>
-                            </div>
-                            <span style={{ fontSize: "12px", fontWeight: "700", color: "#2E7D32" }}>
-                              Kostenlos
-                            </span>
-                          </label>
-
-                          <label
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              padding: "10px 12px",
-                              borderRadius: "10px",
-                              border: deliveryMethod === "delivery" ? "1.8px solid #7A5C43" : "1px solid #E5DFD3",
-                              backgroundColor: deliveryMethod === "delivery" ? "#FAF7F2" : "#FFFFFF",
-                              cursor: "pointer"
-                            }}
-                          >
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <input
-                                type="radio"
-                                name="deliveryMethod"
-                                value="delivery"
-                                checked={deliveryMethod === "delivery"}
-                                onChange={() => setDeliveryMethod("delivery")}
-                                style={{ accentColor: "#7A5C43", cursor: "pointer" }}
-                              />
-                              <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>
-                                Lieferung in Düsseldorf
-                              </span>
-                            </div>
-                            <span style={{ fontSize: "12px", fontWeight: "700", color: "#7A5C43" }}>
-                              +5,00 €
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* WUNSCHTERMIN */}
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                          Wunschtermin ({deliveryMethod === "delivery" ? "Lieferung" : "Abholung"})*:
-                        </label>
-
-                        <input 
-                          type="date" 
-                          name="date"
-                          min={minDate}
-                          required
-                          value={customerData.date}
-                          onChange={handleInputChange}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box", cursor: "pointer" }} 
-                        />
-                        <span style={{ fontSize: "11px", color: "#8C7B6D", marginTop: "4px", display: "block" }}>
-                          ℹ️ Bestellungen sind ab morgen möglich (Zubereitungs- & Ruhezeit).
-                        </span>
-                      </div>
-
-                      {/* VORNAME & NACHNAME */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                        <div>
-                          <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                            Vorname*:
-                          </label>
-                          <input 
-                            type="text" 
-                            name="firstName"
-                            placeholder="z.B. Anna" 
-                            required
-                            value={customerData.firstName}
-                            onChange={handleInputChange}
-                            style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box" }} 
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                            Nachname*:
-                          </label>
-                          <input 
-                            type="text" 
-                            name="lastName"
-                            placeholder="z.B. Müller" 
-                            required
-                            value={customerData.lastName}
-                            onChange={handleInputChange}
-                            style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box" }} 
-                          />
-                        </div>
-                      </div>
-
-                      {/* ADRESA */}
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                          {deliveryMethod === "delivery" ? "Lieferadresse (Straße & Hausnummer)*:" : "Wohnadresse (Straße & Hausnummer)*:"}
-                        </label>
-                        <input 
-                          type="text" 
-                          name="address"
-                          placeholder="Königsallee 12, 40212 Düsseldorf" 
-                          required
-                          value={customerData.address}
-                          onChange={handleInputChange}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box" }} 
-                        />
-                      </div>
-
-                      {/* TELEFON */}
-                      <div>
-                        <label style={{ display: "block", fontSize: "12px", fontWeight: "600", color: "#5C4636", marginBottom: "5px" }}>
-                          Telefonnummer (für Rückfragen)*:
-                        </label>
-                        <input 
-                          type="tel" 
-                          name="phone"
-                          placeholder="+49 170 1234567" 
-                          required
-                          value={customerData.phone}
-                          onChange={handleInputChange}
-                          style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #D9CFC1", fontSize: "13px", boxSizing: "border-box" }} 
-                        />
-                      </div>
-                    </form>
-                  )}
-                </div>
-
-                {/* CHECKOUT DUGMAD */}
-                {cart.length > 0 && (
-                  <div style={{ padding: "16px 20px", borderTop: "1px solid #E5DFD3", backgroundColor: "#FFFFFF", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    
-                    {/* RAČUN I ZBROJ */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "4px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "13px", color: "#6A584A" }}>Zwischensumme:</span>
-                        <span style={{ fontSize: "13px", fontWeight: "600", color: "#2B2118" }}>{itemsAmount.toFixed(2)} €</span>
-                      </div>
-                      
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "13px", color: "#6A584A" }}>
-                          {deliveryMethod === "delivery" ? "Lieferung in Düsseldorf:" : "Übergabe (Abholung):"}
-                        </span>
-                        <span style={{ fontSize: "13px", fontWeight: "600", color: deliveryMethod === "delivery" ? "#7A5C43" : "#2E7D32" }}>
-                          {deliveryMethod === "delivery" ? "+5,00 €" : "0,00 €"}
-                        </span>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #E5DFD3", paddingTop: "6px", marginTop: "2px" }}>
-                        <span style={{ fontSize: "14px", color: "#2B2118", fontWeight: "700" }}>Gesamtsumme:</span>
-                        <span style={{ fontSize: "20px", fontWeight: "700", color: "#7A5C43" }}>
-                          {totalAmount.toFixed(2)} €
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* DUGME ZA KARTICU */}
-                    <button
-                      type="submit"
-                      form="order-form"
-                      disabled={isSubmitting}
-                      style={{ 
-                        width: "100%", 
-                        backgroundColor: "#7A5C43", 
-                        color: "white", 
-                        padding: "12px", 
-                        borderRadius: "10px", 
-                        border: "none", 
-                        fontSize: "15px", 
-                        fontWeight: "700", 
-                        cursor: isSubmitting ? "not-allowed" : "pointer", 
-                        letterSpacing: "0.5px", 
-                        opacity: isSubmitting ? 0.7 : 1 
-                      }}
-                    >
-                      {isSubmitting ? "Wird verarbeitet..." : `💳 Mit Karte bezahlen (${totalAmount.toFixed(2)} €)`}
-                    </button>
-
-                    {/* RAZDJELNIK */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "2px 0" }}>
-                      <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
-                      <span style={{ fontSize: "11px", color: "#8C7B6D", textTransform: "uppercase", fontWeight: "600" }}>oder direkt</span>
-                      <div style={{ flex: 1, height: "1px", backgroundColor: "#E5DFD3" }} />
-                    </div>
-
-                    {/* PAYPAL DUGME */}
-                    <div style={{ width: "100%", minHeight: "44px", position: "relative", zIndex: 10 }}>
-                      <SafePayPalSection
-                        totalAmount={totalAmount}
-                        customerData={customerData}
-                        deliveryMethod={deliveryMethod}
-                        validateFormBeforePay={validateFormBeforePay}
-                        handlePayPalSuccess={handlePayPalSuccess}
-                      />
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
-      </div>
-    </PayPalScriptProvider>
+    </div>
   );
 }
