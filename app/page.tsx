@@ -5,24 +5,24 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Cake {
   id: number;
   name: string;
-  price: number;
   image: string;
   badge?: string;
   imageOffset?: string;
 }
 
 const cakes: Cake[] = [
-  { id: 1, name: "Pistachio Cheesecake", price: 39.0, image: "/cake-pistachio.jpeg", badge: "Bestseller" },
-  { id: 2, name: "Lotus Cheesecake", price: 35.0, image: "/cake-lotus.jpeg" },
-  { id: 3, name: "Coconut Cheesecake", price: 35.0, image: "/cake-coconut.jpeg", imageOffset: "translateY(14px)" },
-  { id: 4, name: "Nougat Cheesecake", price: 35.0, image: "/cake-nougat-new.jpeg" }
+  { id: 1, name: "Pistachio Cheesecake", image: "/cake-pistachio.jpeg", badge: "Bestseller" },
+  { id: 2, name: "Lotus Cheesecake", image: "/cake-lotus.jpeg" },
+  { id: 3, name: "Coconut Cheesecake", image: "/cake-coconut.jpeg", imageOffset: "translateY(14px)" },
+  { id: 4, name: "Nougat Cheesecake", image: "/cake-nougat-new.jpeg" },
+  { id: 5, name: "Matcha Cheesecake", image: "/cake-matcha.jpg" }
 ];
 
 const steps = [
   {
     number: "01",
     title: "Torte & Geschmack wählen",
-    description: "Vier Rezepte, jedes mit einer eigenen Auswahl an feinsten Aromen."
+    description: "Fünf Rezepte, jedes mit einer eigenen Auswahl an feinsten Aromen."
   },
   {
     number: "02",
@@ -36,22 +36,9 @@ const steps = [
   }
 ];
 
-const allReviews = [
-  { name: "Laura M.", city: "Düsseldorf-Oberkassel", text: "Der Lotus Cheesecake war das absolute Highlight auf meiner Geburtstagsfeier! Unglaublich frisch und nicht zu süß." },
-  { name: "Stefan & Elena", city: "Düsseldorf-Pempelfort", text: "Wunderschönes Design und ein himmlischer Geschmack. Werden definitiv für die nächste Feier wieder anfragen!" },
-  { name: "Jasmin K.", city: "Düsseldorf-Stadtmitte", text: "Pünktlich fertig, liebevoll dekoriert und geschmacklich eine 10/10. Sehr zu empfehlen!" },
-  { name: "Maximilian B.", city: "Düsseldorf-MedienHafen", text: "Der Pistachio Cheesecake hat alle Erwartungen übertroffen. So samtig und fein abgeschmeckt – pure Handwerkskunst!" },
-  { name: "Sarah A.", city: "Düsseldorf-Carlstadt", text: "Endlich eine Patisserie in Düsseldorf, die mit so viel Liebe zum Detail bäckt. Die Optik ist einfach Instagram-ready." },
-  { name: "David & Anna", city: "Meerbusch", text: "Hatten den Nougat Cheesecake für unser Jubiläum. Alle Gäste waren restlos begeistert. Vielen Dank!" },
-  { name: "Carolin H.", city: "Düsseldorf-Derendorf", text: "Der Coconut Cheesecake war ein Traum! Leicht, sommerlich und wunderschön verziert mit den kleinen Blüten." },
-  { name: "Felix T.", city: "Düsseldorf-Benrath", text: "Alles war super unkompliziert und die Torte pünktlich fertig. Großes Lob an das gesamte Team!" },
-  { name: "Juan O.", city: "Düsseldorf-Flingern", text: "Brunchito Cakes ist ab jetzt meine erste Anlaufstelle für jeden Anlass. Qualität, die man mit jedem Bissen schmeckt." }
-];
-
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [reviewPage, setReviewPage] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -61,15 +48,6 @@ export default function Home() {
     }, 2200);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    const reviewInterval = setInterval(() => {
-      setReviewPage((prev) => (prev + 1) % 3);
-    }, 12000);
-    return () => clearInterval(reviewInterval);
-  }, []);
-
-  const currentReviews = allReviews.slice(reviewPage * 3, reviewPage * 3 + 3);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -85,14 +63,6 @@ export default function Home() {
         top: offsetPosition,
         behavior: "smooth"
       });
-    }
-  };
-
-  const handleSwipe = (_event: any, info: { offset: { x: number } }) => {
-    if (info.offset.x < -40) {
-      setReviewPage((prev) => (prev + 1) % 3);
-    } else if (info.offset.x > 40) {
-      setReviewPage((prev) => (prev - 1 + 3) % 3);
     }
   };
 
@@ -216,7 +186,6 @@ export default function Home() {
             <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Über uns</a>
             <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Torten</a>
             <a href="#ablauf" onClick={(e) => scrollToSection(e, "ablauf")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Ablauf</a>
-            <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>Bewertungen</a>
           </nav>
 
           {/* MOBILE HAMBURGER */}
@@ -262,7 +231,6 @@ export default function Home() {
               <a href="#ueber-uns" onClick={(e) => scrollToSection(e, "ueber-uns")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Über uns</a>
               <a href="#torten" onClick={(e) => scrollToSection(e, "torten")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Torten</a>
               <a href="#ablauf" onClick={(e) => scrollToSection(e, "ablauf")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Ablauf</a>
-              <a href="#bewertungen" onClick={(e) => scrollToSection(e, "bewertungen")} style={{ textDecoration: "none", color: "#5C4636", fontSize: "16px", fontWeight: "600", padding: "6px 0", width: "100%" }}>Bewertungen</a>
             </motion.div>
           )}
         </AnimatePresence>
@@ -366,9 +334,6 @@ export default function Home() {
 
               <div style={{ padding: "18px 16px", textAlign: "center" }}>
                 <h3 style={{ fontSize: "17px", fontWeight: "700", color: "#2B2118", margin: "0 0 6px" }}>{cake.name}</h3>
-                <p style={{ fontSize: "18px", fontWeight: "700", color: "#7A5C43", margin: "0 0 4px" }}>
-                  {cake.price.toFixed(2).replace(".", ",")} €
-                </p>
                 <p style={{ fontSize: "12px", color: "#8C7B6D", margin: 0 }}>
                   Handgefertigt · Ø 20 cm
                 </p>
@@ -417,91 +382,6 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* BEWERTUNGEN */}
-      <section id="bewertungen" className="section-scroll" style={{ padding: "70px 20px", maxWidth: "1100px", margin: "0 auto", userSelect: "none" }}>
-        <div style={{ textAlign: "center", marginBottom: "30px" }}>
-          <h2 style={{ fontFamily: "serif", fontSize: "32px", color: "#2B2118", margin: "0 0 8px" }}>Das sagen unsere Kunden</h2>
-          <p style={{ color: "#7A5C43", fontSize: "15px", margin: 0 }}>Echte Rückmeldungen aus Düsseldorf & Umgebung</p>
-          <p style={{ color: "#A89A8C", fontSize: "12px", marginTop: "6px" }}>👆 Wischen Sie nach links oder rechts für weitere Bewertungen</p>
-        </div>
-
-        <div style={{ position: "relative", touchAction: "pan-y" }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={reviewPage}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleSwipe}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              style={{ 
-                display: "grid", 
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", 
-                gap: "20px",
-                cursor: "grab"
-              }}
-            >
-              {currentReviews.map((rev, idx) => (
-                <div
-                  key={idx}
-                  style={{ backgroundColor: "#FFFFFF", padding: "24px", borderRadius: "16px", border: "1px solid #EAE4D9", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 4px 15px rgba(59, 40, 27, 0.03)" }}
-                >
-                  <div>
-                    <div style={{ color: "#D4A373", fontSize: "17px", marginBottom: "10px" }}>★★★★★</div>
-                    <p style={{ color: "#5C4636", fontSize: "14px", lineHeight: 1.6, fontStyle: "italic", marginBottom: "16px" }}>"{rev.text}"</p>
-                  </div>
-                  <div>
-                    <p style={{ fontWeight: "700", color: "#2B2118", margin: 0, fontSize: "14px" }}>{rev.name}</p>
-                    <p style={{ color: "#9E8B7C", margin: 0, fontSize: "12px" }}>{rev.city}</p>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginTop: "28px" }}>
-          <button
-            onClick={() => setReviewPage((prev) => (prev - 1 + 3) % 3)}
-            style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
-            aria-label="Vorherige Bewertungen"
-          >
-            ‹
-          </button>
-
-          <div style={{ display: "flex", gap: "8px" }}>
-            {[0, 1, 2].map((pageIndex) => (
-              <button
-                key={pageIndex}
-                onClick={() => setReviewPage(pageIndex)}
-                style={{
-                  width: reviewPage === pageIndex ? "24px" : "8px",
-                  height: "8px",
-                  borderRadius: "4px",
-                  backgroundColor: reviewPage === pageIndex ? "#7A5C43" : "#D9CFC1",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.25s ease",
-                  padding: 0,
-                }}
-                aria-label={`Seite ${pageIndex + 1}`}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={() => setReviewPage((prev) => (prev + 1) % 3)}
-            style={{ background: "#EDE6DA", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#7A5C43", fontWeight: "700", fontSize: "14px" }}
-            aria-label="Nächste Bewertungen"
-          >
-            ›
-          </button>
         </div>
       </section>
 
