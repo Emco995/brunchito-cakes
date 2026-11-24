@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValueEvent
+} from "framer-motion";
 
 interface Cake {
   id: number;
@@ -46,53 +53,68 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const scrollyRef = useRef<HTMLDivElement>(null);
+  const lastFrameRef = useRef<number>(-1);
 
   const { scrollYProgress } = useScroll({
     target: scrollyRef,
     offset: ["start start", "end end"]
   });
 
-  // Tekstualni slojevi koji se pojavljuju tokom animacije torte
-  const text1Opacity = useTransform(scrollYProgress, [0, 0.18, 0.28], [1, 1, 0]);
-  const text1Y = useTransform(scrollYProgress, [0, 0.28], [0, -40]);
+  // useSpring dodaje svilenkastu inerciju da ne preskače frejmove na mobitelu
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 180,
+    damping: 30,
+    restDelta: 0.0005
+  });
 
-  const text2Opacity = useTransform(scrollYProgress, [0.3, 0.42, 0.58, 0.68], [0, 1, 1, 0]);
-  const text2Y = useTransform(scrollYProgress, [0.3, 0.42, 0.68], [40, 0, -40]);
+  // Tekstualni slojevi vezani za smoothProgress radi maksimalne glatkoće
+  const text1Opacity = useTransform(smoothProgress, [0, 0.18, 0.28], [1, 1, 0]);
+  const text1Y = useTransform(smoothProgress, [0, 0.28], [0, -40]);
 
-  const text3Opacity = useTransform(scrollYProgress, [0.7, 0.82, 0.96, 1], [0, 1, 1, 0.8]);
-  const text3Y = useTransform(scrollYProgress, [0.7, 0.82], [40, 0]);
+  const text2Opacity = useTransform(smoothProgress, [0.3, 0.42, 0.58, 0.68], [0, 1, 1, 0]);
+  const text2Y = useTransform(smoothProgress, [0.3, 0.42, 0.68], [40, 0, -40]);
 
-  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+  const text3Opacity = useTransform(smoothProgress, [0.7, 0.82, 0.96, 1], [0, 1, 1, 0.8]);
+  const text3Y = useTransform(smoothProgress, [0.7, 0.82], [40, 0]);
+
+  const scrollHintOpacity = useTransform(smoothProgress, [0, 0.08], [1, 0]);
+
+  const updateCanvasSize = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // ograniči DPR na 2 za brzinu na mobitelima
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+  };
 
   const renderFrame = (index: number) => {
     const canvas = canvasRef.current;
     const img = imagesRef.current[index];
     if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = canvas.width / dpr;
+    const height = canvas.height / dpr;
+
+    if (width === 0 || height === 0) return;
 
     ctx.save();
     ctx.scale(dpr, dpr);
 
     // Pozadina oko kadra
     ctx.fillStyle = "#EAE3D7";
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillRect(0, 0, width, height);
 
-    const isDesktop = rect.width > 768;
+    const isDesktop = width > 768;
 
-    // Široki horizontalni okvir na desktopu ostaje isti
-    const frameX = isDesktop ? Math.max(24, (rect.width - 1320) / 2) : 0;
+    const frameX = isDesktop ? Math.max(24, (width - 1320) / 2) : 0;
     const frameY = isDesktop ? 16 : 0;
-    const frameW = isDesktop ? rect.width - frameX * 2 : rect.width;
-    const frameH = isDesktop ? rect.height - 32 : rect.height;
+    const frameW = isDesktop ? width - frameX * 2 : width;
+    const frameH = isDesktop ? height - 32 : height;
 
     if (isDesktop) {
       ctx.beginPath();
@@ -100,7 +122,6 @@ export default function Home() {
       ctx.clip();
     }
 
-    // Popuni unutrašnjost okvira bojom studijske pozadine slike
     ctx.fillStyle = "#E6DFD3";
     ctx.fillRect(frameX, frameY, frameW, frameH);
 
@@ -117,12 +138,9 @@ export default function Home() {
     const offsetX = frameX + (frameW - drawW) / 2;
     const offsetY = frameY + (frameH - drawH) / 2;
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
     ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
-    // Blago stapanje lijevog i desnog ruba slike sa studijskom pozadinom na desktopu
+    // Blago stapanje rubova na desktopu
     if (isDesktop && drawW < frameW) {
       const fadeWidth = 48;
 
@@ -143,39 +161,51 @@ export default function Home() {
   };
 
   useEffect(() => {
+    updateCanvasSize();
     const loadedImages: HTMLImageElement[] = [];
 
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
+      img.decoding = "async";
       const padded = String(i).padStart(3, "0");
       img.src = `/frames/ezgif-frame-${padded}.${FRAME_EXT}`;
       if (i === 1) {
-        img.onload = () => renderFrame(0);
+        img.onload = () => {
+          lastFrameRef.current = 0;
+          renderFrame(0);
+        };
       }
       loadedImages.push(img);
     }
 
     imagesRef.current = loadedImages;
 
+    let lastWidth = window.innerWidth;
     const handleResize = () => {
-      const currentProgress = scrollYProgress.get();
-      const frameIndex = Math.min(
-        TOTAL_FRAMES - 1,
-        Math.floor(currentProgress * (TOTAL_FRAMES - 1))
-      );
-      renderFrame(frameIndex);
+      // Na mobitelima ignoriši sitne promjene visine kad se sakrije adresna traka (sprečava sjeckanje)
+      if (window.innerWidth !== lastWidth || window.innerWidth > 768) {
+        lastWidth = window.innerWidth;
+        updateCanvasSize();
+        const frameIndex = Math.max(0, lastFrameRef.current);
+        renderFrame(frameIndex);
+      }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+  // Reaguje na zaglađeni smoothProgress
+  useMotionValueEvent(smoothProgress, "change", (latest) => {
     const frameIndex = Math.min(
       TOTAL_FRAMES - 1,
-      Math.max(0, Math.floor(latest * (TOTAL_FRAMES - 1)))
+      Math.max(0, Math.round(latest * (TOTAL_FRAMES - 1)))
     );
-    requestAnimationFrame(() => renderFrame(frameIndex));
+
+    if (frameIndex !== lastFrameRef.current) {
+      lastFrameRef.current = frameIndex;
+      requestAnimationFrame(() => renderFrame(frameIndex));
+    }
   });
 
   useEffect(() => {
@@ -183,6 +213,7 @@ export default function Home() {
     const timer = setTimeout(() => {
       setIsLoading(false);
       window.scrollTo(0, 0);
+      updateCanvasSize();
       renderFrame(0);
     }, 2000);
     return () => clearTimeout(timer);
@@ -221,6 +252,15 @@ export default function Home() {
         }
         .mobile-hamburger {
           display: none;
+        }
+        .hero-sticky-box {
+          position: sticky;
+          top: 74px;
+          height: calc(100vh - 74px);
+          height: calc(100svh - 74px);
+          width: 100%;
+          overflow: hidden;
+          will-change: transform;
         }
         @media (max-width: 768px) {
           .desktop-nav {
@@ -382,15 +422,7 @@ export default function Home() {
           backgroundColor: "#EAE3D7"
         }}
       >
-        <div
-          style={{
-            position: "sticky",
-            top: "74px",
-            height: "calc(100vh - 74px)",
-            width: "100%",
-            overflow: "hidden"
-          }}
-        >
+        <div className="hero-sticky-box">
           {/* CANVAS SA FREJMOVIMA TORTE */}
           <canvas
             ref={canvasRef}
