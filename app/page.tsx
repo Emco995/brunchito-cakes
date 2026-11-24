@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 
 interface Cake {
   id: number;
@@ -9,6 +9,9 @@ interface Cake {
   badge?: string;
   imageOffset?: string;
 }
+
+const TOTAL_FRAMES = 97;
+const FRAME_EXT = "jpg";
 
 const cakes: Cake[] = [
   { id: 1, name: "Pistachio Cheesecake", image: "/cake-pistachio.jpeg", badge: "Bestseller" },
@@ -40,19 +43,155 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const scrollyRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: scrollyRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Tekstualni slojevi koji se pojavljuju tokom animacije torte
+  const text1Opacity = useTransform(scrollYProgress, [0, 0.18, 0.28], [1, 1, 0]);
+  const text1Y = useTransform(scrollYProgress, [0, 0.28], [0, -40]);
+
+  const text2Opacity = useTransform(scrollYProgress, [0.3, 0.42, 0.58, 0.68], [0, 1, 1, 0]);
+  const text2Y = useTransform(scrollYProgress, [0.3, 0.42, 0.68], [40, 0, -40]);
+
+  const text3Opacity = useTransform(scrollYProgress, [0.7, 0.82, 0.96, 1], [0, 1, 1, 0.8]);
+  const text3Y = useTransform(scrollYProgress, [0.7, 0.82], [40, 0]);
+
+  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+
+  const renderFrame = (index: number) => {
+    const canvas = canvasRef.current;
+    const img = imagesRef.current[index];
+    if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    // Pozadina oko kadra
+    ctx.fillStyle = "#EAE3D7";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    const isDesktop = rect.width > 768;
+
+    // Široki horizontalni okvir na desktopu ostaje isti
+    const frameX = isDesktop ? Math.max(24, (rect.width - 1320) / 2) : 0;
+    const frameY = isDesktop ? 16 : 0;
+    const frameW = isDesktop ? rect.width - frameX * 2 : rect.width;
+    const frameH = isDesktop ? rect.height - 32 : rect.height;
+
+    if (isDesktop) {
+      ctx.beginPath();
+      ctx.roundRect(frameX, frameY, frameW, frameH, 28);
+      ctx.clip();
+    }
+
+    // Popuni unutrašnjost okvira bojom studijske pozadine slike
+    ctx.fillStyle = "#E6DFD3";
+    ctx.fillRect(frameX, frameY, frameW, frameH);
+
+    // Udalji tortu (contain po visini) da slika bude maksimalno oštra i cijela vidljiva
+    const imgRatio = img.naturalWidth / img.naturalHeight;
+    let drawH = isDesktop ? frameH * 0.94 : frameH;
+    let drawW = drawH * imgRatio;
+
+    if (drawW > frameW) {
+      drawW = frameW;
+      drawH = drawW / imgRatio;
+    }
+
+    const offsetX = frameX + (frameW - drawW) / 2;
+    const offsetY = frameY + (frameH - drawH) / 2;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+    // Blago stapanje lijevog i desnog ruba slike sa studijskom pozadinom na desktopu
+    if (isDesktop && drawW < frameW) {
+      const fadeWidth = 48;
+
+      const leftGrad = ctx.createLinearGradient(offsetX, 0, offsetX + fadeWidth, 0);
+      leftGrad.addColorStop(0, "#E6DFD3");
+      leftGrad.addColorStop(1, "rgba(230, 223, 211, 0)");
+      ctx.fillStyle = leftGrad;
+      ctx.fillRect(offsetX, offsetY, fadeWidth, drawH);
+
+      const rightGrad = ctx.createLinearGradient(offsetX + drawW - fadeWidth, 0, offsetX + drawW, 0);
+      rightGrad.addColorStop(0, "rgba(230, 223, 211, 0)");
+      rightGrad.addColorStop(1, "#E6DFD3");
+      ctx.fillStyle = rightGrad;
+      ctx.fillRect(offsetX + drawW - fadeWidth, offsetY, fadeWidth, drawH);
+    }
+
+    ctx.restore();
+  };
+
+  useEffect(() => {
+    const loadedImages: HTMLImageElement[] = [];
+
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      const padded = String(i).padStart(3, "0");
+      img.src = `/frames/ezgif-frame-${padded}.${FRAME_EXT}`;
+      if (i === 1) {
+        img.onload = () => renderFrame(0);
+      }
+      loadedImages.push(img);
+    }
+
+    imagesRef.current = loadedImages;
+
+    const handleResize = () => {
+      const currentProgress = scrollYProgress.get();
+      const frameIndex = Math.min(
+        TOTAL_FRAMES - 1,
+        Math.floor(currentProgress * (TOTAL_FRAMES - 1))
+      );
+      renderFrame(frameIndex);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const frameIndex = Math.min(
+      TOTAL_FRAMES - 1,
+      Math.max(0, Math.floor(latest * (TOTAL_FRAMES - 1)))
+    );
+    requestAnimationFrame(() => renderFrame(frameIndex));
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => {
       setIsLoading(false);
       window.scrollTo(0, 0);
-    }, 2200);
+      renderFrame(0);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
-    
+
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 70;
@@ -95,7 +234,7 @@ export default function Home() {
           }
         }
       `}</style>
-      
+
       {/* PRELOADER */}
       <AnimatePresence>
         {isLoading && (
@@ -111,7 +250,7 @@ export default function Home() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: "center"
             }}
           >
             <motion.div
@@ -128,7 +267,7 @@ export default function Home() {
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "transparent",
-                boxShadow: "0 10px 30px rgba(122, 92, 67, 0.08)",
+                boxShadow: "0 10px 30px rgba(122, 92, 67, 0.08)"
               }}
             >
               <motion.span
@@ -160,21 +299,20 @@ export default function Home() {
       </AnimatePresence>
 
       {/* HEADER */}
-      <header style={{ position: "sticky", top: 0, zIndex: 40, backgroundColor: "rgba(247, 244, 238, 0.98)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "rgba(247, 244, 238, 0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #E5DFD3", padding: "12px 20px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ textDecoration: "none", display: "flex", alignItems: "center", cursor: "pointer" }}>
-            <div style={{ 
-              width: "50px", 
-              height: "50px", 
-              borderRadius: "50%", 
-              border: "1.2px solid #7A5C43", 
-              display: "flex", 
-              flexDirection: "column", 
-              alignItems: "center", 
-              justifyContent: "center", 
+            <div style={{
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              border: "1.2px solid #7A5C43",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               backgroundColor: "transparent",
-              cursor: "pointer" 
+              cursor: "pointer"
             }}>
               <span style={{ fontSize: "8px", fontWeight: "600", letterSpacing: "0.3px", color: "#7A5C43", lineHeight: 1 }}>Brunchito</span>
               <span style={{ fontSize: "7px", fontStyle: "italic", fontFamily: "serif", color: "#7A5C43", marginTop: "1.5px" }}>cakes</span>
@@ -200,7 +338,6 @@ export default function Home() {
               <span style={{ width: "22px", height: "2px", backgroundColor: "#7A5C43", borderRadius: "2px", transition: "transform 0.2s ease", transform: isMobileMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }}></span>
             </button>
           </div>
-
         </div>
 
         {/* OVERLAY MOBILNI MENI */}
@@ -211,7 +348,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={{ 
+              style={{
                 position: "absolute",
                 top: "100%",
                 left: 0,
@@ -219,11 +356,11 @@ export default function Home() {
                 backgroundColor: "rgba(247, 244, 238, 0.98)",
                 borderBottom: "1px solid #E5DFD3",
                 boxShadow: "0 10px 25px rgba(59, 40, 27, 0.08)",
-                display: "flex", 
-                flexDirection: "column", 
-                alignItems: "center", 
-                textAlign: "center", 
-                gap: "14px", 
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                gap: "14px",
                 padding: "20px 0",
                 zIndex: 50
               }}
@@ -236,30 +373,144 @@ export default function Home() {
         </AnimatePresence>
       </header>
 
-      {/* HERO */}
-      <section style={{ padding: "60px 20px 40px", textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
-        <div>
-          <div style={{ display: "inline-block", backgroundColor: "#EDE6DA", color: "#7A5C43", padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", marginBottom: "16px", letterSpacing: "1px" }}>
-            FRISCH UND MIT LIEBE GEBACKEN
-          </div>
-          <h1 style={{ fontSize: "clamp(30px, 5vw, 54px)", fontWeight: "500", fontFamily: "serif", color: "#2B2118", lineHeight: 1.2, margin: "0 0 18px" }}>
-            Handgemachte Torten für unvergessliche Momente
-          </h1>
-          <p style={{ fontSize: "16px", color: "#6A584A", lineHeight: 1.6, maxWidth: "580px", margin: "0 auto 26px", fontWeight: "400" }}>
-            Entdecken Sie unsere handgefertigten Premium-Kreationen in Düsseldorf. Mit viel Liebe zum Detail, feinsten Zutaten und stilvollem Design.
-          </p>
-          <a
-            href="#torten"
-            onClick={(e) => scrollToSection(e, "torten")}
-            style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "12px 28px", borderRadius: "30px", fontSize: "15px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px" }}
+      {/* APPLE-STYLE 3D CANVAS SCROLL HERO */}
+      <section
+        ref={scrollyRef}
+        style={{
+          height: "360vh",
+          position: "relative",
+          backgroundColor: "#EAE3D7"
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            top: "74px",
+            height: "calc(100vh - 74px)",
+            width: "100%",
+            overflow: "hidden"
+          }}
+        >
+          {/* CANVAS SA FREJMOVIMA TORTE */}
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block"
+            }}
+          />
+
+          {/* TEKSTUALNI SLOJ 1 (0% - 28% SKROLA) */}
+          <motion.div
+            style={{
+              opacity: text1Opacity,
+              y: text1Y,
+              position: "absolute",
+              top: "12%",
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              padding: "0 20px",
+              pointerEvents: "none",
+              zIndex: 10
+            }}
           >
-            Unsere Torten entdecken
-          </a>
+            <span style={{ display: "inline-block", backgroundColor: "rgba(255,255,255,0.85)", color: "#7A5C43", padding: "5px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px", backdropFilter: "blur(6px)" }}>
+              Artisan Patisserie · Düsseldorf
+            </span>
+            <h1 style={{ fontFamily: "serif", fontSize: "clamp(32px, 5vw, 58px)", fontWeight: "500", color: "#2B2118", margin: 0, lineHeight: 1.1, textShadow: "0 2px 18px rgba(247,244,238,0.9)" }}>
+              Handgemachte Torten
+            </h1>
+          </motion.div>
+
+          {/* TEKSTUALNI SLOJ 2 (30% - 68% SKROLA) */}
+          <motion.div
+            style={{
+              opacity: text2Opacity,
+              y: text2Y,
+              position: "absolute",
+              bottom: "14%",
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              padding: "0 20px",
+              pointerEvents: "none",
+              zIndex: 10
+            }}
+          >
+            <div style={{ display: "inline-block", backgroundColor: "rgba(250, 247, 242, 0.88)", backdropFilter: "blur(10px)", padding: "16px 26px", borderRadius: "22px", border: "1px solid rgba(122, 92, 67, 0.2)", boxShadow: "0 10px 30px rgba(43, 33, 24, 0.08)" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "2px", color: "#7A5C43", textTransform: "uppercase", display: "block", marginBottom: "4px" }}>
+                Feinste Zutaten
+              </span>
+              <h2 style={{ fontFamily: "serif", fontSize: "clamp(24px, 3.5vw, 38px)", fontWeight: "500", color: "#2B2118", margin: 0 }}>
+                Samtige Pistaziencreme & Frische Beeren
+              </h2>
+            </div>
+          </motion.div>
+
+          {/* TEKSTUALNI SLOJ 3 (70% - 100% SKROLA) */}
+          <motion.div
+            style={{
+              opacity: text3Opacity,
+              y: text3Y,
+              position: "absolute",
+              bottom: "12%",
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              padding: "0 20px",
+              zIndex: 10
+            }}
+          >
+            <div style={{ display: "inline-block", backgroundColor: "rgba(250, 247, 242, 0.92)", backdropFilter: "blur(10px)", padding: "18px 28px", borderRadius: "24px", border: "1px solid rgba(122, 92, 67, 0.25)", boxShadow: "0 12px 35px rgba(43, 33, 24, 0.12)" }}>
+              <h2 style={{ fontFamily: "serif", fontSize: "clamp(22px, 3vw, 34px)", fontWeight: "500", color: "#2B2118", margin: "0 0 12px" }}>
+                Dein Geschmack. Dein Moment.
+              </h2>
+              <a
+                href="#torten"
+                onClick={(e) => scrollToSection(e, "torten")}
+                style={{ display: "inline-block", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "10px 24px", borderRadius: "25px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
+              >
+                Alle 5 Sorten entdecken
+              </a>
+            </div>
+          </motion.div>
+
+          {/* SCROLL HINT NA DNU */}
+          <motion.div
+            style={{
+              opacity: scrollHintOpacity,
+              position: "absolute",
+              bottom: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 20,
+              backgroundColor: "rgba(250, 247, 242, 0.85)",
+              padding: "6px 16px",
+              borderRadius: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              pointerEvents: "none"
+            }}
+          >
+            <span style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: "#7A5C43", fontWeight: "700" }}>
+              Scrollen
+            </span>
+            <motion.span
+              animate={{ y: [0, 4, 0] }}
+              transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+              style={{ fontSize: "14px", color: "#7A5C43" }}
+            >
+              ↓
+            </motion.span>
+          </motion.div>
         </div>
       </section>
 
       {/* ÜBER UNS */}
-      <section id="ueber-uns" className="section-scroll" style={{ backgroundColor: "#EDE6DA", padding: "60px 20px" }}>
+      <section id="ueber-uns" className="section-scroll" style={{ backgroundColor: "#EDE6DA", padding: "70px 20px" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "36px", alignItems: "center" }}>
           <div>
             <span style={{ color: "#7A5C43", fontSize: "12px", fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase" }}>Brunchito cakes Düsseldorf</span>
@@ -272,7 +523,7 @@ export default function Home() {
             <p style={{ color: "#6A584A", lineHeight: 1.6, fontSize: "15px", marginBottom: "18px" }}>
               Haben Sie Fragen zu unseren Kreationen oder speziellen Wünschen? Kontaktieren Sie uns gerne direkt telefonisch oder per WhatsApp.
             </p>
-            
+
             <a
               href="tel:+491782083381"
               style={{ display: "inline-flex", alignItems: "center", gap: "10px", backgroundColor: "#7A5C43", color: "white", textDecoration: "none", padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
@@ -296,10 +547,10 @@ export default function Home() {
           <p style={{ color: "#7A5C43", fontSize: "15px" }}>Jede Torte reicht für ca. 8-10 Personen (Ø 20cm)</p>
         </div>
 
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
-          gap: "20px" 
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "20px"
         }}>
           {cakes.map((cake, index) => (
             <motion.div
@@ -316,13 +567,13 @@ export default function Home() {
                   src={cake.image}
                   alt={cake.name}
                   loading="lazy"
-                  style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    objectFit: "cover", 
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
                     objectPosition: "center 78%",
-                    transform: cake.imageOffset ? `scale(1.1) ${cake.imageOffset}` : "scale(1.1)", 
-                    transition: "transform 0.3s ease" 
+                    transform: cake.imageOffset ? `scale(1.1) ${cake.imageOffset}` : "scale(1.1)",
+                    transition: "transform 0.3s ease"
                   }}
                 />
                 {cake.badge && (
@@ -367,7 +618,7 @@ export default function Home() {
                   boxShadow: "0 6px 25px rgba(59, 40, 27, 0.03)",
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "flex-start",
+                  justifyContent: "flex-start"
                 }}
               >
                 <span style={{ fontSize: "34px", fontWeight: "400", fontFamily: "serif", color: "#C09062", marginBottom: "16px", display: "block", lineHeight: 1 }}>
@@ -388,7 +639,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer style={{ backgroundColor: "#2B2118", color: "#D9CFC1", padding: "50px 20px 30px" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-around", alignItems: "flex-start", gap: "30px", borderBottom: "1px solid #453528", paddingBottom: "36px" }}>
-          
+
           {/* LIJEVA KOLONA */}
           <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
@@ -402,7 +653,7 @@ export default function Home() {
               Premium-Torten in Düsseldorf
             </p>
           </div>
-          
+
           {/* DESNA KOLONA */}
           <div style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <p style={{ color: "white", fontSize: "15px", fontWeight: "600", marginBottom: "10px" }}>
@@ -455,7 +706,7 @@ export default function Home() {
             </a>
           </div>
         </div>
-        
+
         {/* AUTORSKA PRAVA */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "26px" }}>
           <p style={{ textAlign: "center", fontSize: "12px", color: "#786759", margin: 0 }}>
@@ -463,7 +714,6 @@ export default function Home() {
           </p>
         </div>
       </footer>
-
     </div>
   );
 }
